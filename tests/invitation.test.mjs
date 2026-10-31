@@ -56,6 +56,18 @@ test('내용을 HTML로 실행하지 않고 텍스트로 표시하며, 서울 �
   assert.ok(html.includes(escapeHtml(sample.parking.split('\n')[1])));
 });
 
+test('선택형 가족 소개와 키워드는 HTML을 실행하지 않고 표시',async()=>{
+  const data=structuredClone(sample);
+  Object.assign(data.families[0].members[0],{tagline:'<b>소개</b>',description:'<script>소개</script>',tags:['<img onerror=alert(1)>']});
+  const html=await renderInvitation(root,data,true);
+  for (const value of ['<b>소개</b>','<script>소개</script>','<img onerror=alert(1)>']) {
+    assert.ok(html.includes(escapeHtml(value)));
+    assert.ok(!html.includes(value));
+  }
+  data.families[0].members[0].tags='잘못된 형식';
+  assert.throws(()=>validateContent(data,true));
+});
+
 test('이미지는 로컬에 있는 파일만 내장하고, SVG 외부 참조를 차단',async()=>{
   const directory=await mkdtemp(path.join(os.tmpdir(),'majung-test-'));
   try {

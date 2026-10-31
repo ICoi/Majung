@@ -40,9 +40,15 @@ dd { flex: 1 1 13rem; min-width: 0; }
 .family-photo-placeholder { display: grid; place-content: center; gap: .7rem; min-height: 12rem; padding: 2rem 1rem; text-align: center; color: var(--accent); }
 .family-photo-placeholder > span { font-size: 2rem; }
 .family-photo-placeholder p { font-size: 1rem; }
-.family dl > div { display: flex; flex-wrap: wrap; gap: .2rem 1rem; padding: .45rem 0; }
+.family dl > div { display: flex; flex-wrap: wrap; gap: .2rem 1rem; padding: 1.4rem 0; border-bottom: 1px solid var(--line); }
 .family dt { flex-basis: 4rem; }
-.family dd { flex-basis: 5rem; }
+.family dd { flex: 1 1 14rem; }
+.family .family-member:last-child { border-bottom: 0; }
+.member-name { font-weight: 650; font-size: 1.2rem; }
+.member-tagline { color: var(--accent); margin-top: .25rem; font-weight: 600; }
+.member-description { margin-top: .7rem; }
+.member-tags { display: flex; flex-wrap: wrap; gap: .35rem .6rem; list-style: none; padding: 0; margin: .8rem 0 0; color: var(--muted); font-size: 1rem; }
+.member-tags li { max-width: 100%; background: #f3e8d8; border-radius: .3rem; padding: .1rem .5rem; }
 .map { border: 1px solid var(--line); background: #f6eddf; border-radius: .5rem; overflow: hidden; }
 .map img { width: 100%; height: auto; display: block; }
 .map-image-button { display: block; width: 100%; margin: 0; padding: 0; border: 0; background: transparent; cursor: zoom-in; }

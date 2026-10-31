@@ -22,6 +22,12 @@ export function validateContent(data, demo = false) {
   if (!Array.isArray(data.families) || data.families.length !== 2) throw new Error('양가 가족 정보를 입력해 주세요.');
   for (const family of data.families) {
     if (!family.title || !Array.isArray(family.members) || !family.members.length || family.members.some((m) => !m.relation || !m.name)) throw new Error('가족의 관계와 이름을 채워 주세요.');
+    for (const member of family.members) {
+      for (const key of ['tagline', 'description']) {
+        if (member[key] !== undefined && typeof member[key] !== 'string') throw new Error('가족 소개는 문장으로 입력해 주세요.');
+      }
+      if (member.tags !== undefined && (!Array.isArray(member.tags) || member.tags.some(tag => typeof tag !== 'string'))) throw new Error('가족 소개 키워드를 확인해 주세요.');
+    }
     if (!demo && (!family.photo || typeof family.photoAlt !== 'string' || !family.photoAlt.trim())) throw new Error('양가별 가족사진과 사진 설명을 입력해 주세요.');
   }
   const date = new Date(`${data.date}T00:00:00+09:00`);
@@ -79,7 +85,7 @@ export async function renderInvitation(root, data, demo) {
       if(!demo || error.code !== 'ENOENT') throw error;
       familyPhoto=`<div class="family-photo-placeholder" role="img" aria-label="${escapeHtml(family.title)} 사진 자리 표시자"><span aria-hidden="true">✳</span><p>가족사진이 들어갈 자리</p></div>`;
     }
-    return `<div class="family"><h3>${escapeHtml(family.title)}</h3><figure class="family-photo">${familyPhoto}</figure><dl>${family.members.map((member) => `<div><dt>${escapeHtml(member.relation)}</dt><dd>${escapeHtml(member.name)}</dd></div>`).join('')}</dl></div>`;
+    return `<div class="family"><h3>${escapeHtml(family.title)}</h3><figure class="family-photo">${familyPhoto}</figure><dl>${family.members.map((member) => `<div class="family-member"><dt>${escapeHtml(member.relation)}</dt><dd><span class="member-name">${escapeHtml(member.name)}</span>${member.tagline ? `<p class="member-tagline">${escapeHtml(member.tagline)}</p>` : ''}${member.description ? `<p class="member-description">${escapeHtml(member.description)}</p>` : ''}${member.tags?.length ? `<ul class="member-tags" aria-label="관심사와 성격">${member.tags.map(tag => `<li>#${escapeHtml(tag)}</li>`).join('')}</ul>` : ''}</dd></div>`).join('')}</dl></div>`;
   }))).join('');
   const webMapLink = data.naverMapUrl ? `<a href="${escapeHtml(data.naverMapUrl)}" target="_blank" rel="noopener noreferrer">웹 지도 보기<span class="sr-only"> (새 창)</span></a>` : '';
   const links=navigationLinks(data.navigation);
