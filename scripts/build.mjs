@@ -21,12 +21,18 @@ try {
   const data = JSON.parse(await readFile(path.join(root,demo ? 'content.example.json' : '.private/content.json'),'utf8'));
   let password;
   if (demo) {
-    password = randomBytes(18).toString('base64url');
-    await writeFile(path.join(root,largeText ? '.private/large-text-password.txt' : '.private/preview-password.txt'), password+'\n', {mode:0o600});
+    const passwordFile = path.join(root,largeText ? '.private/large-text-password.txt' : '.private/preview-password.txt');
+    try { password = (await readFile(passwordFile,'utf8')).trim(); }
+    catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      password = randomBytes(18).toString('base64url');
+      await writeFile(passwordFile, password+'\n', {mode:0o600});
+    }
   } else {
     password = process.env.STATICRYPT_PASSWORD || (await readFile(path.join(root,'.private/password.txt'),'utf8')).trim();
   }
-  if (password.length < 16) throw new Error('비밀번호는 16자 이상으로 설정해 주세요.');
+  if (!password) throw new Error('비밀번호를 입력해 주세요.');
+  if (!demo && password.length < 16) throw new Error('실제 배포용 비밀번호는 16자 이상으로 설정해 주세요.');
   let plaintext = await renderInvitation(root,data,demo);
   if (largeText) plaintext = plaintext.replace('</style>', 'html { font-size: 200%; }</style>');
   assertSearchExcluded(plaintext);
