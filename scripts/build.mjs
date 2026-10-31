@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { renderInvitation } from './render.mjs';
 import { assertSearchExcluded } from './check-public.mjs';
-import { validatePassword } from './password.mjs';
+import { validatePassword, assertPasswordNotExposed } from './password.mjs';
 
 const require = createRequire(import.meta.url);
 const cryptoEngine = require('staticrypt/lib/cryptoEngine.js');
@@ -53,7 +53,7 @@ try {
     js_staticrypt:buildStaticryptJS(),
     staticrypt_config:{staticryptEncryptedMsgUniqueVariableName:encrypted,staticryptSaltUniqueVariableName:salt,isRememberEnabled:false,rememberDurationInDays:0}
   });
-  if (html.includes(password)) throw new Error('비밀번호 노출 검사에 실패했습니다.');
+  assertPasswordNotExposed(html,password);
   assertSearchExcluded(html);
   if (largeText) {
     await writeFile(path.join(root,'.private/large-text.html'),html,{mode:0o600});

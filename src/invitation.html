@@ -43,28 +43,30 @@
     <section class="section directions" aria-labelledby="directions-title">
       <p class="eyebrow">오시는 길</p>
       <h2 id="directions-title">편안히 찾아오세요</h2>
-      <figure class="map">{{map}}<figcaption>{{mapCaption}}</figcaption></figure>
-      <p class="map-description">{{mapDescription}}</p>
-      <div class="button-group">{{mapLinks}}<button type="button" class="button" data-copy="{{address}}" data-copy-label="식당 주소">식당 주소 복사</button></div>
-      <div class="guide"><h3><span class="guide-number" aria-hidden="true">01</span>차량으로 오실 때</h3><p>{{driving}}</p></div>
-      <div class="navigation-box">
-        <h3>내비게이션으로 오기</h3>
-        <p class="navigation-instructions"><strong>아래 버튼을 누르면 내비게이션 앱으로 바로 이동합니다!</strong><br>상견례 당일에는 평소 사용하시는 앱의 버튼을 눌러 식당까지 길 안내를 받으시면 됩니다.</p>
+      <div class="navigation-box" aria-labelledby="navigation-title">
+        <p class="step-label">01 · 길 안내</p>
+        <h3 id="navigation-title">당일에는 이 버튼을 눌러 주세요</h3>
+        <p class="navigation-instructions">아래 버튼을 누르면 내비게이션 앱으로 바로 이동합니다!<br><span>평소 쓰시는 앱을 선택해 식당까지 길 안내를 받아 주세요.</span></p>
         <p id="navigation-help" class="muted">{{navigationHelp}}</p>
         <div class="button-group navigation-buttons">{{navigationButtons}}</div>
         <p class="navigation-status" role="status" aria-live="polite"></p>
         <p class="navigation-install" hidden>앱이 열리지 않으면 설치 여부를 확인하거나 주소를 복사해 이용해 주세요. <a href="{{naverMapUrl}}" target="_blank" rel="noopener noreferrer">웹 지도 열기</a></p>
-        <p class="eyebrow">네비게이션 검색어</p>
-        <p class="search-query">{{navigationQuery}}</p>
-        <p class="muted">식당 앞 주차 공간으로 오시면 됩니다.</p>
-        <dl class="details"><div><dt>차량 도착 주소</dt><dd>{{parkingAddress}}</dd></div></dl>
-        <button type="button" class="button" data-copy="{{navigationQuery}}" data-copy-label="네비게이션 검색어">검색어 복사</button>
+        <details class="manual-navigation"><summary>직접 검색해서 오시려면</summary><p class="search-query">{{navigationQuery}}</p><button type="button" class="button" data-copy="{{navigationQuery}}" data-copy-label="네비게이션 검색어">검색어 복사</button></details>
       </div>
-      <div class="guide parking"><h3><span class="guide-number" aria-hidden="true">02</span>주차 안내</h3><p>{{parking}}</p></div>
+      <div class="location-guide" aria-labelledby="location-title">
+        <p class="step-label">02 · 위치 확인</p>
+        <h3 id="location-title">식당 위치를 확인해 주세요</h3>
+        <figure class="map">{{map}}<figcaption>{{mapCaption}}</figcaption></figure>
+        <button type="button" class="button map-expand" data-map-expand aria-haspopup="dialog" aria-controls="map-dialog">약도 크게 보기 <span aria-hidden="true">＋</span></button>
+        <p class="map-description">{{mapDescription}}</p>
+        <div class="address-block"><p class="address-venue">{{venue}}</p><p class="address-text">{{address}}</p><div class="address-actions"><button type="button" class="button" data-copy="{{address}}" data-copy-label="식당 주소">주소 복사</button>{{webMapLink}}</div></div>
+      </div>
+      <div class="parking" aria-labelledby="parking-title"><p class="step-label">03 · 주차</p><h3 id="parking-title">주차 안내</h3><p class="parking-main">{{parkingMain}}</p><p class="parking-extra">{{parkingExtra}}</p></div>
       <p class="copy-status" role="status" aria-live="polite" aria-atomic="true"></p>
     </section>
     <footer><span class="footer-flower" aria-hidden="true">✳</span><p>귀한 걸음에 감사드립니다.<br>따뜻한 마음으로 기다리겠습니다.</p><p class="footer-names">{{nameOne}} &amp; {{nameTwo}} 드림</p></footer>
   </main>
+  <dialog id="map-dialog" class="map-dialog" aria-labelledby="map-dialog-title"><div class="map-dialog-heading"><h2 id="map-dialog-title">약도 크게 보기</h2><form method="dialog"><button type="submit" class="button">닫기</button></form></div><p class="muted">좌우로 움직여 약도를 확인해 주세요.</p><div class="map-dialog-scroll"><img id="map-zoom-image" alt="확대한 식당 주변 약도"></div></dialog>
   <script>{{script}}</script>
 </body>
 </html>

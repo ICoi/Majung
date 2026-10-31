@@ -13,7 +13,7 @@ export function render(template, values) {
 
 export function validateContent(data, demo = false) {
   validateNavigation(data.navigation, !demo);
-  const fields = ['invitation', 'date', 'time', 'venue', 'address', 'room', 'driving', 'navigationQuery', 'parkingAddress', 'parking', 'mapDescription', 'photoAlt'];
+  const fields = ['invitation', 'date', 'time', 'venue', 'address', 'room', 'navigationQuery', 'parking', 'mapDescription', 'photoAlt'];
   for (const key of fields) {
     if (typeof data[key] !== 'string' || !data[key].trim()) throw new Error(`필수 항목을 채워 주세요: ${key}`);
   }
@@ -61,24 +61,32 @@ export async function renderInvitation(root, data, demo) {
   const dateLabel = new Intl.DateTimeFormat('ko-KR', {timeZone:'Asia/Seoul',year:'numeric',month:'long',day:'numeric',weekday:'long'}).format(date);
   const timeLabel = new Intl.DateTimeFormat('ko-KR', {timeZone:'Asia/Seoul',hour:'numeric',minute:'2-digit',hour12:true}).format(date);
   const photo = demo ? placeholder : `<img src="${await inlineAsset(path.join(root,'.private'), data.photo, 'photo')}" alt="${escapeHtml(data.photoAlt)}" decoding="async">`;
-  const mapData = demo ? `data:image/svg+xml;base64,${Buffer.from(await readFile(path.join(src,'sample-map.svg'))).toString('base64')}` : await inlineAsset(path.join(root,'.private'), data.map, 'map');
+  let mapData, sampleMap=false;
+  try { mapData=await inlineAsset(path.join(root,'.private'), data.map, 'map'); }
+  catch (error) {
+    if (!demo || error.code !== 'ENOENT') throw error;
+    sampleMap=true;
+    mapData=`data:image/svg+xml;base64,${Buffer.from(await readFile(path.join(src,'sample-map.svg'))).toString('base64')}`;
+  }
   const families = (await Promise.all(data.families.map(async (family) => {
     const familyPhoto = demo
       ? `<div class="family-photo-placeholder" role="img" aria-label="${escapeHtml(family.title)} 사진 자리 표시자"><span aria-hidden="true">✳</span><p>가족사진이 들어갈 자리</p></div>`
       : `<img src="${await inlineAsset(path.join(root,'.private'), family.photo, 'photo')}" alt="${escapeHtml(family.photoAlt)}" loading="lazy" decoding="async">`;
     return `<div class="family"><h3>${escapeHtml(family.title)}</h3><figure class="family-photo">${familyPhoto}</figure><dl>${family.members.map((member) => `<div><dt>${escapeHtml(member.relation)}</dt><dd>${escapeHtml(member.name)}</dd></div>`).join('')}</dl></div>`;
   }))).join('');
-  const mapLinks = [['naverMapUrl','네이버지도 열기'],['kakaoMapUrl','카카오맵 열기']].filter(([key]) => data[key]).map(([key,label]) => `<a class="button" href="${escapeHtml(data[key])}" target="_blank" rel="noopener noreferrer">${label}<span class="sr-only"> (새 창)</span></a>`).join('');
+  const webMapLink = data.naverMapUrl ? `<a href="${escapeHtml(data.naverMapUrl)}" target="_blank" rel="noopener noreferrer">웹 지도 보기<span class="sr-only"> (새 창)</span></a>` : '';
   const links=navigationLinks(data.navigation);
-  const navigationButtons=links.map((link)=>`<a class="button navigation-app" href="${escapeHtml(link.url)}" data-navigation="${link.id}" data-app-label="${link.label}">${link.label}</a>`).join('');
+  const navigationButtons=links.map((link)=>`<a class="button navigation-app" href="${escapeHtml(link.url)}" data-navigation="${link.id}" data-app-label="${link.label}"><span>${link.label}</span><span aria-hidden="true">↗</span></a>`).join('');
+  const [parkingMain,...parkingRest]=data.parking.split('\n');
   return render(template, {
     ...Object.fromEntries(Object.entries(data).filter(([,v])=>typeof v==='string').map(([k,v])=>[k,escapeHtml(v)])),
-    styles, script, photo, families, mapLinks, navigationButtons,
-    navigationHelp: !links.length ? '장소가 확정되면 내비게이션 연결을 안내해 드립니다.' : '휴대폰에서 이용하시는 앱을 선택해 주세요.',
+    styles, script, photo, families, webMapLink, navigationButtons,
+    parkingMain:escapeHtml(parkingMain),parkingExtra:escapeHtml(parkingRest.join('\n')),
+    navigationHelp: !links.length ? '장소가 확정되면 내비게이션 연결을 안내해 드립니다.' : '',
     nameOne: escapeHtml(data.couple[0]), nameTwo: escapeHtml(data.couple[1]),
     datetime: `${data.date}T${data.time}:00+09:00`, dateLabel:escapeHtml(dateLabel), timeLabel:escapeHtml(timeLabel),
-    map: `<img src="${mapData}" alt="${demo ? '예시 약도' : '장소와 주차장 입구 약도'}" loading="lazy" decoding="async">`,
-    mapCaption: demo ? '예시 약도 · 실제 위치가 아닙니다.' : '장소와 주차장 입구 · 자세한 설명은 아래를 참고해 주세요.',
+    map: `<img src="${mapData}" alt="${sampleMap ? '예시 약도' : '식당 주변 약도'}" loading="lazy" decoding="async">`,
+    mapCaption: sampleMap ? '예시 약도 · 실제 위치가 아닙니다.' : '식당 주변 약도',
     sampleBanner: demo ? '<p class="sample-banner">디자인 확인용 초대장입니다.<br>일부 정보와 사진은 예시입니다.</p>' : ''
   });
 }

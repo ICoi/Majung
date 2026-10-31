@@ -30,4 +30,12 @@ document.querySelectorAll('[data-navigation]').forEach((link) => {
     document.querySelector('.navigation-install').hidden=false;
   });
 });
+const mapExpand=document.querySelector('[data-map-expand]');
+if(mapExpand) mapExpand.addEventListener('click',()=>{
+  const dialog=document.getElementById('map-dialog');
+  document.getElementById('map-zoom-image').src=document.querySelector('.map img').src;
+  dialog.showModal();
+  const mapScroll=document.querySelector('.map-dialog-scroll');
+  mapScroll.scrollLeft=Math.max(0,(mapScroll.scrollWidth-mapScroll.clientWidth)/2);
+});
 document.querySelector('main').focus({ preventScroll: true });

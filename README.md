@@ -40,8 +40,7 @@ cp content.example.json .private/content.json
 | `date`, `time` | 한국 시각 기준 `YYYY-MM-DD`, 24시간제 `HH:MM`. 요일 자동 표시 |
 | `venue`, `address`, `room` | 장소명, 도로명 주소, 예약명·층·룸 |
 | `families` | 양가별 제목, 가족사진 파일명 `photo`, 사진 설명 `photoAlt`, 참석자 관계·이름 |
-| `driving` | 차량으로 식당 앞까지 오는 진입 방향. 대중교통 안내는 사용하지 않음 |
-| `navigationQuery`, `parkingAddress` | 식당 앞까지 안내하는 정확한 검색어, 차량 도착 주소 |
+| `navigationQuery` | 직접 검색할 때 사용할 식당 검색어. 기본 화면에서는 접어서 표시 |
 | `parking` | 식당 앞 주차, 자리가 없으면 발렛 주차 이용 안내. 요금·운영 시간은 확인된 경우에만 입력 |
 | `mapDescription` | 약도 내용을 글로도 설명 |
 | `naverMapUrl`, `kakaoMapUrl` | 해당 장소의 공식 HTTPS 지도 공유 링크 |
@@ -52,9 +51,11 @@ cp content.example.json .private/content.json
 
 가족 소개에는 양가별 가족사진을 한 장씩 넣습니다. `.private/family-one.jpg`, `.private/family-two.jpg`로 보관하고 각 `families` 항목의 `photo`와 `photoAlt`에 연결합니다. 사진 아래에는 관계·이름을 표시하며, 가족별 영역을 세로로 배치합니다. 가족사진도 본문과 함께 암호화됩니다. 예시 모드에서는 실제 사진 대신 자리 표시자를 사용하며, 실제 배포 빌드에는 두 가족의 사진과 사진 설명이 필요합니다.
 
-확정된 식당 정보는 로컬 전용 `.private/venue.json`에 따로 보관할 수 있습니다. 이 파일이 있으면 `content.example.json`(예시) 또는 `.private/content.json`(실제)을 읽은 뒤 해당 필드를 덮어 적용합니다. `venue`, `address`, `driving`, `navigationQuery`, `parkingAddress`, 지도 링크와 `navigation`을 입력합니다. 이름·일시·사진 등 아직 미정인 항목은 예시로 유지하면서 실제 목적지 연결을 확인할 수 있습니다. 실제 식당명·주소·좌표는 공개 예시나 스킬에 옮겨 적지 마세요.
+확정된 식당 정보는 로컬 전용 `.private/venue.json`에 따로 보관할 수 있습니다. 이 파일이 있으면 `content.example.json`(예시) 또는 `.private/content.json`(실제)을 읽은 뒤 해당 필드를 덮어 적용합니다. `venue`, `address`, `navigationQuery`, 지도 링크와 `navigation`을 입력합니다. 이름·일시·사진 등 아직 미정인 항목은 예시로 유지하면서 실제 목적지 연결을 확인할 수 있습니다. 실제 식당명·주소·좌표는 공개 예시나 스킬에 옮겨 적지 마세요.
 
-`.private/content.json`이 있으면 예시 미리보기도 그 내용을 우선 사용합니다. 따라서 확정된 이름·일정·예약·가족 정보는 이 로컬 파일에만 입력하면 됩니다. `npm run demo`와 `npm run demo:large-text`에서는 사진·약도를 자리 표시자와 예시 약도로 유지하며, 실제 배포 빌드는 원본 자료가 모두 준비된 후 실행합니다. 로컬 내용 파일이 없을 때만 공개된 가상 예시를 사용합니다.
+`.private/content.json`이 있으면 예시 미리보기도 그 내용을 우선 사용합니다. 따라서 확정된 이름·일정·예약·가족 정보는 이 로컬 파일에만 입력하면 됩니다. `npm run demo`와 `npm run demo:large-text`에서 사진은 자리 표시자로 유지하고, 약도는 지정한 로컬 이미지가 있으면 실제 이미지를 사용합니다. 약도가 없을 때만 예시 약도를 사용합니다. 실제 배포 빌드는 원본 자료가 모두 준비된 후 실행합니다. 로컬 내용 파일이 없을 때만 공개된 가상 예시를 사용합니다.
+
+오시는 길은 **앱으로 길 안내 받기 → 약도·주소 확인 → 주차 안내** 순서입니다. 앱 버튼을 우선 보여주고 직접 검색하는 방법은 접어 둡니다. 약도는 ‘크게 보기’로 확대하고 ‘닫기’ 또는 Escape로 돌아올 수 있습니다. 확대 화면은 이미 내장된 이미지 데이터를 재사용합니다. `.private/venue.json`에도 `map`(파일명), `mapDescription`(짧은 위치 설명)을 지정할 수 있습니다. 주차 문구의 첫 줄은 핵심 안내, 이후 줄은 발렛 등 보충 안내로 구분해 표시합니다.
 
 내비게이션 버튼은 **카카오맵·T맵·네이버지도** 세 앱을 여는 방식이며 API 키나 내장 지도 SDK를 사용하지 않습니다. 카카오맵은 `kakaomap://route`의 `ep=위도,경도&by=car`로 자동차 길찾기를 열고, 네이버지도는 `nmap://navigation`, T맵은 `tmap://route`에 같은 목적지를 전달합니다. 카카오내비 공유 링크를 찾거나 앱 키를 발급할 필요가 없습니다.
 

@@ -8,7 +8,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { escapeHtml, validateContent, renderInvitation, inlineAsset } from '../scripts/render.mjs';
 import { assertSearchExcluded, checkPublic } from '../scripts/check-public.mjs';
-import { validatePassword } from '../scripts/password.mjs';
+import { validatePassword, assertPasswordNotExposed } from '../scripts/password.mjs';
 import { navigationLinks, validateNavigation } from '../scripts/navigation.mjs';
 
 const require = createRequire(import.meta.url);
@@ -16,6 +16,12 @@ const engine = require('staticrypt/lib/cryptoEngine.js');
 const codec = require('staticrypt/lib/codec.js').init(engine);
 const root = fileURLToPath(new URL('../',import.meta.url));
 const sample = JSON.parse(await readFile(path.join(root,'content.example.json'),'utf8'));
+
+test('암호문에 우연히 포함된 숫자는 허용하고 평문 비밀번호 노출은 차단',()=>{
+  const encrypted='{"staticryptEncryptedMsgUniqueVariableName":"ab123456cd"}';
+  assert.doesNotThrow(()=>assertPasswordNotExposed(encrypted,'123456'));
+  assert.throws(()=>assertPasswordNotExposed(encrypted+'<p>123456</p>','123456'));
+});
 
 test('실제 비밀번호는 앞자리 0을 보존하는 숫자 6자리이며 예시는 비어 있지 않아야 함',()=>{
   assert.doesNotThrow(()=>validatePassword('012345'));
@@ -96,10 +102,13 @@ test('실제 제작 경로에서 사진과 약도를 내장하고 지도 링크�
     assert.match(html,/data:image\/png;base64,/);
     assert.match(html,/data:image\/svg\+xml;base64,/);
     assert.match(html,/href="https:\/\/naver.me\/test"/);
-    assert.match(html,/카카오맵 열기/);
+    assert.match(html,/data-navigation="kakao"/);
     assert.ok(!html.includes('<p class="sample-banner">'));
     assert.equal((html.match(/class="family-photo"/g)||[]).length,2);
     assert.equal((html.match(/data:image\/png;base64,/g)||[]).length,3);
+    const preview=await renderInvitation(fixture,data,true);
+    assert.ok(preview.includes('식당 주변 약도'));
+    assert.ok(!preview.includes('예시 약도 · 실제 위치가 아닙니다.'));
     const missingPhoto=structuredClone(data);
     delete missingPhoto.families[0].photo;
     assert.throws(()=>validateContent(missingPhoto,false),/가족사진/);
@@ -146,7 +155,7 @@ test('모바일은 앱 링크를 실행하고 데스크톱은 앱 실행 대신 
     const status={textContent:''},fallback={hidden:true};
     const document={
       querySelectorAll(selector){return selector==='[data-navigation]' ? links : [];},
-      querySelector(selector){return selector==='.navigation-status' ? status : selector==='.navigation-install' ? fallback : {focus(){}};}
+      querySelector(selector){return selector==='.navigation-status' ? status : selector==='.navigation-install' ? fallback : selector==='main' ? {focus(){}} : null;}
     };
     vm.runInNewContext(script,{document,navigator:{userAgent,platform,maxTouchPoints},window:{location:{origin:'https://example.test'}},URL});
     for(const link of links){
@@ -164,7 +173,7 @@ test('실제 생성한 암호화 파일을 복원하고 공개 HTML과 비밀번
   const html=await checkPublic(path.join(root,'dist'));
   const demo=html.startsWith('<!-- invitation-mode:demo -->');
   const password=(process.env.STATICRYPT_PASSWORD && !demo) ? process.env.STATICRYPT_PASSWORD : (await readFile(path.join(root,demo ? '.private/preview-password.txt' : '.private/password.txt'),'utf8')).trim();
-  assert.ok(!html.includes(password));
+  assert.doesNotThrow(()=>assertPasswordNotExposed(html,password));
   const encrypted=html.match(/"staticryptEncryptedMsgUniqueVariableName":"([0-9a-f]+)"/)[1];
   const salt=html.match(/"staticryptSaltUniqueVariableName":"([0-9a-f]+)"/)[1];
   const result=await codec.decode(encrypted,await engine.hashPassword(password,salt),salt);
