@@ -64,7 +64,6 @@ figcaption { color: var(--muted); font-size: .95rem; margin-top: .8rem; }
 .navigation-buttons { margin-bottom: 1.5rem; }
 .navigation-instructions { margin-bottom: 1rem; }
 .navigation-buttons > * { flex: 1 1 8rem; }
-.navigation-app:disabled { color: #646b60; border-color: #c3c9b7; cursor: default; }
 .navigation-status, .navigation-install { margin-block: 1rem; font-size: 1rem; }
 .navigation-install a { color: var(--ink); text-underline-offset: .2em; }
 .navigation-status:empty { display: none; }

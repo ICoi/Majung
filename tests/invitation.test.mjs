@@ -90,7 +90,7 @@ test('실제 제작 경로에서 사진과 약도를 내장하고 지도 링크�
     await writeFile(path.join(fixture,'.private/map.svg'),'<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="green"/></svg>');
     const data = JSON.parse(JSON.stringify(sample).replace(/예시/g,'검증용').replace(/확인 후/g,'확인하여'));
     Object.assign(data,{photo:'couple.png',naverMapUrl:'https://naver.me/test',kakaoMapUrl:'https://map.kakao.com/'});
-    data.navigation={name:'검증용 식당 & 가족',latitude:37.5,longitude:126.9,kakaoNaviUrl:'https://kakaonavi.kakao.com/test'};
+    data.navigation={name:'검증용 식당 & 가족',latitude:37.5,longitude:126.9};
     data.families.forEach((family)=>{ family.photo='couple.png'; });
     const html=await renderInvitation(fixture,data,false);
     assert.match(html,/data:image\/png;base64,/);
@@ -108,7 +108,7 @@ test('실제 제작 경로에서 사진과 약도를 내장하고 지도 링크�
 });
 
 test('내비게이션은 세 앱에 동일한 목적지와 정확한 위도·경도를 전달',()=>{
-  const destination={name:'검증 식당 & 모임',latitude:37.5,longitude:126.9,kakaoNaviUrl:'https://kakaonavi.kakao.com/test'};
+  const destination={name:'검증 식당 & 모임',latitude:37.5,longitude:126.9};
   validateNavigation(destination,true);
   const links=navigationLinks(destination);
   assert.equal(links.length,3);
@@ -123,12 +123,16 @@ test('내비게이션은 세 앱에 동일한 목적지와 정확한 위도·경
   assert.equal(naver.searchParams.get('dlat'),'37.5');
   assert.equal(naver.searchParams.get('dlng'),'126.9');
   assert.equal(naver.searchParams.get('dname'),destination.name);
-  assert.equal(links.find(link=>link.id==='kakao').url,destination.kakaoNaviUrl);
+  const kakao=new URL(links.find(link=>link.id==='kakao').url);
+  assert.equal(kakao.protocol,'kakaomap:');
+  assert.equal(kakao.hostname,'route');
+  assert.equal(kakao.searchParams.get('ep'),'37.5,126.9');
+  assert.equal(kakao.searchParams.get('by'),'car');
+  assert.equal(links.find(link=>link.id==='kakao').label,'카카오맵');
   assert.throws(()=>validateNavigation({...destination,latitude:126.9,longitude:37.5}));
-  assert.throws(()=>validateNavigation({...destination,kakaoNaviUrl:'javascript:alert(1)'}));
-  assert.throws(()=>validateNavigation({...destination,kakaoNaviUrl:'https://kakaonavi.kakao.com.evil.test/'}));
-  assert.throws(()=>validateNavigation({...destination,kakaoNaviUrl:''},true));
-  assert.equal(navigationLinks({...destination,kakaoNaviUrl:''})[0].url,'');
+  assert.throws(()=>validateNavigation({...destination,latitude:NaN}));
+  assert.throws(()=>validateNavigation(null,true));
+  assert.doesNotThrow(()=>validateNavigation(destination,true));
 });
 
 test('모바일은 앱 링크를 실행하고 데스크톱은 앱 실행 대신 이용 안내를 표시',async()=>{
@@ -136,7 +140,7 @@ test('모바일은 앱 링크를 실행하고 데스크톱은 앱 실행 대신 
   for (const [userAgent,platform,maxTouchPoints,mobile] of [
     ['Desktop','MacIntel',0,false], ['Android','Linux',5,true], ['iPhone','iPhone',5,true], ['Macintosh','MacIntel',5,true]
   ]) {
-    const links=navigationLinks({name:'검증 식당',latitude:37.5,longitude:126.9,kakaoNaviUrl:''}).filter(link=>link.url).map(link=>({
+    const links=navigationLinks({name:'검증 식당',latitude:37.5,longitude:126.9}).map(link=>({
       href:link.url,dataset:{navigation:link.id,appLabel:link.label},addEventListener(_,handler){this.click=handler;}
     }));
     const status={textContent:''},fallback={hidden:true};

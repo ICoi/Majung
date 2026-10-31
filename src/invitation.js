@@ -21,7 +21,7 @@ document.querySelectorAll('[data-navigation]').forEach((link) => {
   link.addEventListener('click', (event) => {
     const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const status=document.querySelector('.navigation-status');
-    if (!mobile && link.dataset.navigation !== 'kakao') {
+    if (!mobile) {
       event.preventDefault();
       status.textContent=`${link.dataset.appLabel} 길 안내는 휴대폰에서 이용해 주세요. 아래 주소를 복사하거나 웹 지도를 열 수 있습니다.`;
     } else {
