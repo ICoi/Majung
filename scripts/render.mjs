@@ -94,6 +94,5 @@ export async function renderInvitation(root, data, demo) {
     datetime: `${data.date}T${data.time}:00+09:00`, dateLabel:escapeHtml(dateLabel), timeLabel:escapeHtml(timeLabel),
     map: `<img src="${mapData}" alt="${sampleMap ? '예시 약도' : '식당 주변 약도'}" loading="lazy" decoding="async">`,
     mapCaption: sampleMap ? '예시 약도 · 실제 위치가 아닙니다.' : '식당 주변 약도',
-    sampleBanner: demo ? '<p class="sample-banner">디자인 확인용 초대장입니다.<br>일부 정보와 사진은 예시입니다.</p>' : ''
   });
 }
