@@ -1,0 +1,8 @@
+.private/
+node_modules/
+.env
+.env.*
+.staticrypt.json
+.DS_Store
+test-results/
+playwright-report/

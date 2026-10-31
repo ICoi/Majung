@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
+  <title>상견례 초대장</title>
+  <style>{{styles}}</style>
+</head>
+<body>
+  <main id="invitation" tabindex="-1">
+    {{sampleBanner}}
+    <header class="cover">
+      <div class="cover-heading"><span class="eyebrow">소중한 첫 만남</span><span class="cover-mark" aria-hidden="true">✳</span></div>
+      <figure class="portrait">{{photo}}</figure>
+      <div class="cover-copy">
+        <p class="eyebrow">우리, 가족이 되는 날</p>
+        <h1>{{nameOne}}<span class="name-join" aria-label="그리고"> &amp; </span>{{nameTwo}}</h1>
+        <p class="cover-subtitle">상견례에 초대합니다</p>
+        <div class="small-rule" aria-hidden="true"></div>
+        <p class="invitation-copy">{{invitation}}</p>
+      </div>
+    </header>
+
+    <section class="section meeting" aria-labelledby="meeting-title">
+      <p class="eyebrow">함께할 시간</p>
+      <h2 id="meeting-title">이날, 이곳에서 만나요</h2>
+      <div class="date-statement"><time datetime="{{datetime}}">{{dateLabel}}<span class="date-time">{{timeLabel}}</span></time></div>
+      <dl class="details">
+        <div><dt>장소</dt><dd class="venue-name">{{venue}}</dd></div>
+        <div><dt>주소</dt><dd>{{address}}</dd></div>
+        <div><dt>예약 안내</dt><dd>{{room}}</dd></div>
+      </dl>
+    </section>
+
+    <section class="section" aria-labelledby="family-title">
+      <p class="eyebrow">서로에게 건네는 첫인사</p>
+      <h2 id="family-title">함께하는 가족</h2>
+      <div class="families">{{families}}</div>
+    </section>
+
+    <section class="section directions" aria-labelledby="directions-title">
+      <p class="eyebrow">오시는 길</p>
+      <h2 id="directions-title">편안히 찾아오세요</h2>
+      <figure class="map">{{map}}<figcaption>{{mapCaption}}</figcaption></figure>
+      <p class="map-description">{{mapDescription}}</p>
+      <div class="button-group">{{mapLinks}}<button type="button" class="button" data-copy="{{address}}" data-copy-label="식당 주소">식당 주소 복사</button></div>
+      <div class="guide"><h3><span class="guide-number" aria-hidden="true">01</span>대중교통으로 오실 때</h3><p>{{transit}}</p></div>
+      <div class="guide"><h3><span class="guide-number" aria-hidden="true">02</span>차량으로 오실 때</h3><p>{{driving}}</p></div>
+      <div class="navigation-box">
+        <p class="eyebrow">네비게이션 검색어</p>
+        <p class="search-query">{{navigationQuery}}</p>
+        <p class="muted">차량으로 오실 때는 주차장 입구를 목적지로 설정해 주세요.</p>
+        <dl class="details"><div><dt>주차장 주소</dt><dd>{{parkingAddress}}</dd></div></dl>
+        <button type="button" class="button" data-copy="{{navigationQuery}}" data-copy-label="네비게이션 검색어">검색어 복사</button>
+      </div>
+      <div class="guide parking"><h3><span class="guide-number" aria-hidden="true">03</span>주차 안내</h3><p>{{parking}}</p></div>
+      <p class="copy-status" role="status" aria-live="polite" aria-atomic="true"></p>
+    </section>
+    <footer><span class="footer-flower" aria-hidden="true">✳</span><p>귀한 걸음에 감사드립니다.<br>따뜻한 마음으로 기다리겠습니다.</p><p class="footer-names">{{nameOne}} &amp; {{nameTwo}} 드림</p></footer>
+  </main>
+  <script>{{script}}</script>
+</body>
+</html>

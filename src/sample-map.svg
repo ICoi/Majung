@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="420" viewBox="0 0 560 420">
+  <rect width="560" height="420" fill="#f0f0e8"/>
+  <path d="M0 290H560M345 0V420" stroke="#fffefa" stroke-width="64"/>
+  <path d="M0 290H560M345 0V420" stroke="#c8ccbd" stroke-width="1" stroke-dasharray="8 7"/>
+  <g fill="#e1e5d7" stroke="#b5bfa8"><rect x="40" y="40" width="175" height="105" rx="6"/><rect x="400" y="170" width="120" height="70" rx="6"/><rect x="45" y="335" width="170" height="65" rx="6"/></g>
+  <rect x="400" y="45" width="120" height="85" rx="6" fill="#58684d"/>
+  <path d="M140 290H345V95H395" fill="none" stroke="#7e8d68" stroke-width="5" stroke-dasharray="8 7"/>
+  <path d="m385 86 12 9-12 9" fill="none" stroke="#58684d" stroke-width="4"/>
+  <g font-family="sans-serif" font-size="22" text-anchor="middle" fill="#343c32"><text x="125" y="90">주변 건물</text><text x="125" y="120" font-size="18">예시</text><text x="460" y="213">꽃집</text><text x="130" y="376">만남역 2번 출구</text><text x="190" y="256">만남로</text><text x="460" y="81" fill="#fffefa">식당</text><text x="460" y="111" fill="#fffefa" font-size="18">예시 장소</text><text x="435" y="155" font-size="18">← 주차장 입구</text></g>
+</svg>
