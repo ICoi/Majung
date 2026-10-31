@@ -62,6 +62,7 @@ figcaption { color: var(--muted); font-size: .95rem; margin-top: .8rem; }
 .navigation-box .details { margin: 1rem 0; }
 .navigation-box .button { background: var(--paper); width: 100%; }
 .navigation-buttons { margin-bottom: 1.5rem; }
+.navigation-instructions { margin-bottom: 1rem; }
 .navigation-buttons > * { flex: 1 1 8rem; }
 .navigation-app:disabled { color: #646b60; border-color: #c3c9b7; cursor: default; }
 .navigation-status, .navigation-install { margin-block: 1rem; font-size: 1rem; }
