@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { renderInvitation } from './render.mjs';
+import { assertSearchExcluded } from './check-public.mjs';
 
 const require = createRequire(import.meta.url);
 const cryptoEngine = require('staticrypt/lib/cryptoEngine.js');
@@ -28,6 +29,7 @@ try {
   if (password.length < 16) throw new Error('비밀번호는 16자 이상으로 설정해 주세요.');
   let plaintext = await renderInvitation(root,data,demo);
   if (largeText) plaintext = plaintext.replace('</style>', 'html { font-size: 200%; }</style>');
+  assertSearchExcluded(plaintext);
   const salt = cryptoEngine.generateRandomSalt();
   const encrypted = await codec.encode(plaintext,password,salt);
   let template = (await readFile(path.join(root,'src/lock.html'),'utf8')).replace('{{sampleNote}}', demo ? '<p class="sample">디자인 확인용 예시 초대장입니다.</p>' : '');
@@ -37,6 +39,7 @@ try {
     staticrypt_config:{staticryptEncryptedMsgUniqueVariableName:encrypted,staticryptSaltUniqueVariableName:salt,isRememberEnabled:false,rememberDurationInDays:0}
   });
   if (html.includes(password)) throw new Error('비밀번호 노출 검사에 실패했습니다.');
+  assertSearchExcluded(html);
   if (largeText) {
     await writeFile(path.join(root,'.private/large-text.html'),html,{mode:0o600});
     console.log('200% 글씨 검사 화면 생성 완료: /large-text/ · 비밀번호: .private/large-text-password.txt');

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import path from 'node:path';
 import { escapeHtml, validateContent, renderInvitation, inlineAsset } from '../scripts/render.mjs';
-import { checkPublic } from '../scripts/check-public.mjs';
+import { assertSearchExcluded, checkPublic } from '../scripts/check-public.mjs';
 
 const require = createRequire(import.meta.url);
 const engine = require('staticrypt/lib/cryptoEngine.js');
@@ -95,4 +95,20 @@ test('실제 생성한 암호화 파일을 복원하고 공개 HTML과 비밀번
   assert.equal(result.success,true);
   assert.match(result.decoded,/<main id="invitation"/);
   assert.match(result.decoded,/data:image/);
+  assert.doesNotThrow(()=>assertSearchExcluded(result.decoded));
+});
+
+test('검색 제외는 최초 HTML head에 필요하며, 누락되면 공개 파일 검사가 실패',async()=>{
+  const html=await checkPublic(path.join(root,'dist'));
+  const withoutRobots=html.replace(/<meta name="robots"[^>]*>/i,'');
+  assert.throws(()=>assertSearchExcluded(withoutRobots));
+  assert.throws(()=>assertSearchExcluded(withoutRobots.replace('</body>','<meta name="robots" content="noindex"></body>')));
+  assert.throws(()=>assertSearchExcluded(html.replace(/content="noindex,[^"]*"/i,'content="index, follow"')));
+  assert.throws(()=>assertSearchExcluded(withoutRobots.replace('</head>','<!-- <meta name="robots" content="noindex"> --></head>')));
+  const directory=await mkdtemp(path.join(os.tmpdir(),'majung-search-'));
+  try {
+    await writeFile(path.join(directory,'.nojekyll'),'');
+    await writeFile(path.join(directory,'index.html'),withoutRobots);
+    await assert.rejects(()=>checkPublic(directory),/noindex/);
+  } finally { await rm(directory,{recursive:true}); }
 });
