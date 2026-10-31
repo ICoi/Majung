@@ -107,6 +107,7 @@ test('실제 제작 경로에서 사진과 약도를 내장하고 지도 링크�
     assert.equal((html.match(/class="family-photo"/g)||[]).length,2);
     assert.equal((html.match(/data:image\/png;base64,/g)||[]).length,3);
     const preview=await renderInvitation(fixture,data,true);
+    assert.equal((preview.match(/data:image\/png;base64,/g)||[]).length,1);
     assert.ok(preview.includes('식당 주변 약도'));
     assert.ok(!preview.includes('예시 약도 · 실제 위치가 아닙니다.'));
     const missingPhoto=structuredClone(data);

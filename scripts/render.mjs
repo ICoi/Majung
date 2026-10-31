@@ -45,7 +45,8 @@ export async function inlineAsset(privateDir, filename, kind) {
   const extension = path.extname(resolved).toLowerCase();
   if (!types[extension] || (kind === 'photo' && extension === '.svg')) throw new Error('사진은 JPG·PNG·WebP, 약도는 SVG·JPG·PNG·WebP를 사용해 주세요.');
   const bytes = await readFile(resolved);
-  if (bytes.length > 3 * 1024 * 1024) throw new Error('이미지 한 장의 용량을 3MB 이하로 줄여 주세요.');
+  const limit=kind === 'photo' ? 5 : 3;
+  if (bytes.length > limit * 1024 * 1024) throw new Error(`이미지 한 장의 용량을 ${limit}MB 이하로 줄여 주세요.`);
   const svgContent = bytes.toString().replace(/xmlns(?:\:\w+)?\s*=\s*["'][^"']+["']/g, '');
   if (extension === '.svg' && /(?:https?:|\/\/|<script|<foreignObject|@import|url\(|href\s*=)/i.test(svgContent)) throw new Error('약도 SVG에는 외부 참조나 스크립트를 넣을 수 없습니다.');
   return `data:${types[extension]};base64,${bytes.toString('base64')}`;
@@ -60,7 +61,9 @@ export async function renderInvitation(root, data, demo) {
   const date = new Date(`${data.date}T${data.time}:00+09:00`);
   const dateLabel = new Intl.DateTimeFormat('ko-KR', {timeZone:'Asia/Seoul',year:'numeric',month:'long',day:'numeric',weekday:'long'}).format(date);
   const timeLabel = new Intl.DateTimeFormat('ko-KR', {timeZone:'Asia/Seoul',hour:'numeric',minute:'2-digit',hour12:true}).format(date);
-  const photo = demo ? placeholder : `<img src="${await inlineAsset(path.join(root,'.private'), data.photo, 'photo')}" alt="${escapeHtml(data.photoAlt)}" decoding="async">`;
+  let photo;
+  try { photo=`<img src="${await inlineAsset(path.join(root,'.private'), data.photo, 'photo')}" alt="${escapeHtml(data.photoAlt)}" decoding="async">`; }
+  catch(error) { if(!demo || error.code !== 'ENOENT') throw error; photo=placeholder; }
   let mapData, sampleMap=false;
   try { mapData=await inlineAsset(path.join(root,'.private'), data.map, 'map'); }
   catch (error) {
