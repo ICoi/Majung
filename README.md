@@ -38,9 +38,9 @@ cp content.example.json .private/content.json
 | `date`, `time` | 한국 시각 기준 `YYYY-MM-DD`, 24시간제 `HH:MM`. 요일 자동 표시 |
 | `venue`, `address`, `room` | 장소명, 도로명 주소, 예약명·층·룸 |
 | `families` | 양가별 제목, 가족사진 파일명 `photo`, 사진 설명 `photoAlt`, 참석자 관계·이름 |
-| `transit`, `driving` | 역·출구·도보 안내, 차량 진입 방향 |
-| `navigationQuery`, `parkingAddress` | 주차장으로 안내하는 정확한 검색어, 차량 진입구 주소 |
-| `parking` | 위치·입구·무료 시간·인증 방법을 확인해 입력 |
+| `driving` | 차량으로 식당 앞까지 오는 진입 방향. 대중교통 안내는 사용하지 않음 |
+| `navigationQuery`, `parkingAddress` | 식당 앞까지 안내하는 정확한 검색어, 차량 도착 주소 |
+| `parking` | 식당 앞 주차, 자리가 없으면 발렛 주차 이용 안내. 요금·운영 시간은 확인된 경우에만 입력 |
 | `mapDescription` | 약도 내용을 글로도 설명 |
 | `naverMapUrl`, `kakaoMapUrl` | 해당 장소의 공식 HTTPS 지도 공유 링크 |
 | `photo`, `photoAlt`, `map` | `.private` 안의 사진 파일명, 사진 설명, 약도 파일명 |

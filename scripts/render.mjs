@@ -11,7 +11,7 @@ export function render(template, values) {
 }
 
 export function validateContent(data, demo = false) {
-  const fields = ['invitation', 'date', 'time', 'venue', 'address', 'room', 'transit', 'driving', 'navigationQuery', 'parkingAddress', 'parking', 'mapDescription', 'photoAlt'];
+  const fields = ['invitation', 'date', 'time', 'venue', 'address', 'room', 'driving', 'navigationQuery', 'parkingAddress', 'parking', 'mapDescription', 'photoAlt'];
   for (const key of fields) {
     if (typeof data[key] !== 'string' || !data[key].trim()) throw new Error(`필수 항목을 채워 주세요: ${key}`);
   }

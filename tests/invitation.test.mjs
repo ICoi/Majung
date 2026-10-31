@@ -43,6 +43,8 @@ test('내용을 HTML로 실행하지 않고 텍스트로 표시하며, 서울 �
   assert.match(html,/data:image\/svg\+xml;base64,/);
   assert.ok(!html.includes('{{'));
   assert.ok(!/<(?:img|script)[^>]+src="https?:/.test(html));
+  assert.ok(!html.includes('대중교통'));
+  assert.ok(html.includes('자리가 없으면 발렛 주차를 이용해 주세요.'));
 });
 
 test('이미지는 로컬에 있는 파일만 내장하고, SVG 외부 참조를 차단',async()=>{
