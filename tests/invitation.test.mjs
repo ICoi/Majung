@@ -7,12 +7,23 @@ import os from 'node:os';
 import path from 'node:path';
 import { escapeHtml, validateContent, renderInvitation, inlineAsset } from '../scripts/render.mjs';
 import { assertSearchExcluded, checkPublic } from '../scripts/check-public.mjs';
+import { validatePassword } from '../scripts/password.mjs';
 
 const require = createRequire(import.meta.url);
 const engine = require('staticrypt/lib/cryptoEngine.js');
 const codec = require('staticrypt/lib/codec.js').init(engine);
 const root = fileURLToPath(new URL('../',import.meta.url));
 const sample = JSON.parse(await readFile(path.join(root,'content.example.json'),'utf8'));
+
+test('실제 비밀번호는 앞자리 0을 보존하는 숫자 6자리이며 예시는 비어 있지 않아야 함',()=>{
+  assert.doesNotThrow(()=>validatePassword('012345'));
+  assert.doesNotThrow(()=>validatePassword('123456'));
+  for (const invalid of ['', '12345', '1234567', 'abcdef', '12345a', '123456 ', '１２３４５６']) {
+    assert.throws(()=>validatePassword(invalid));
+  }
+  assert.doesNotThrow(()=>validatePassword('local-demo',true));
+  assert.throws(()=>validatePassword('   ',true));
+});
 
 test('실제 배포에 예시·미확정 내용과 잘못된 지도 주소를 허용하지 않음',()=>{
   assert.doesNotThrow(()=>validateContent(sample,true));

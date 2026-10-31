@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { renderInvitation } from './render.mjs';
 import { assertSearchExcluded } from './check-public.mjs';
+import { validatePassword } from './password.mjs';
 
 const require = createRequire(import.meta.url);
 const cryptoEngine = require('staticrypt/lib/cryptoEngine.js');
@@ -31,8 +32,7 @@ try {
   } else {
     password = process.env.STATICRYPT_PASSWORD || (await readFile(path.join(root,'.private/password.txt'),'utf8')).trim();
   }
-  if (!password) throw new Error('비밀번호를 입력해 주세요.');
-  if (!demo && password.length < 16) throw new Error('실제 배포용 비밀번호는 16자 이상으로 설정해 주세요.');
+  validatePassword(password, demo);
   let plaintext = await renderInvitation(root,data,demo);
   if (largeText) plaintext = plaintext.replace('</style>', 'html { font-size: 200%; }</style>');
   assertSearchExcluded(plaintext);
