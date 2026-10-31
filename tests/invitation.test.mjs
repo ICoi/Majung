@@ -86,12 +86,19 @@ test('실제 제작 경로에서 사진과 약도를 내장하고 지도 링크�
     await writeFile(path.join(fixture,'.private/map.svg'),'<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="green"/></svg>');
     const data = JSON.parse(JSON.stringify(sample).replace(/예시/g,'검증용').replace(/확인 후/g,'확인하여'));
     Object.assign(data,{photo:'couple.png',naverMapUrl:'https://naver.me/test',kakaoMapUrl:'https://map.kakao.com/'});
+    data.families.forEach((family)=>{ family.photo='couple.png'; });
     const html=await renderInvitation(fixture,data,false);
     assert.match(html,/data:image\/png;base64,/);
     assert.match(html,/data:image\/svg\+xml;base64,/);
     assert.match(html,/href="https:\/\/naver.me\/test"/);
     assert.match(html,/카카오맵 열기/);
     assert.ok(!html.includes('sample-banner">'));
+    assert.equal((html.match(/class="family-photo"/g)||[]).length,2);
+    assert.equal((html.match(/data:image\/png;base64,/g)||[]).length,3);
+    const missingPhoto=structuredClone(data);
+    delete missingPhoto.families[0].photo;
+    assert.throws(()=>validateContent(missingPhoto,false),/가족사진/);
+    await assert.rejects(()=>renderInvitation(fixture,{...data,families:data.families.map((family)=>({...family,photo:'https://example.com/family.jpg'}))},false));
   } finally { await rm(fixture,{recursive:true}); }
 });
 

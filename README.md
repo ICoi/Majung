@@ -37,7 +37,7 @@ cp content.example.json .private/content.json
 | `couple`, `invitation` | 두 사람 이름 두 개, 초대 문구. 줄바꿈은 `\n` |
 | `date`, `time` | 한국 시각 기준 `YYYY-MM-DD`, 24시간제 `HH:MM`. 요일 자동 표시 |
 | `venue`, `address`, `room` | 장소명, 도로명 주소, 예약명·층·룸 |
-| `families` | 양가별 제목, 참석자 관계·이름 |
+| `families` | 양가별 제목, 가족사진 파일명 `photo`, 사진 설명 `photoAlt`, 참석자 관계·이름 |
 | `transit`, `driving` | 역·출구·도보 안내, 차량 진입 방향 |
 | `navigationQuery`, `parkingAddress` | 주차장으로 안내하는 정확한 검색어, 차량 진입구 주소 |
 | `parking` | 위치·입구·무료 시간·인증 방법을 확인해 입력 |
@@ -46,6 +46,8 @@ cp content.example.json .private/content.json
 | `photo`, `photoAlt`, `map` | `.private` 안의 사진 파일명, 사진 설명, 약도 파일명 |
 
 사진을 `.private/couple.jpg`, 실제 약도를 `.private/map.svg` 등에 보관합니다. 사진은 JPG·PNG·WebP, 약도는 SVG도 지원합니다. 이미지당 최대 3MB이며, 사진은 가로 1200~1600px 정도로 줄이고 위치정보 등 메타데이터를 제거해 주세요. 사진 전체를 비율 그대로 표시하므로 얼굴이 자동 잘리지 않습니다. SVG 약도는 외부 이미지·폰트·스크립트 없이 독립된 파일이어야 합니다. 예시 약도를 실제 위치처럼 사용하지 마세요.
+
+가족 소개에는 양가별 가족사진을 한 장씩 넣습니다. `.private/family-one.jpg`, `.private/family-two.jpg`로 보관하고 각 `families` 항목의 `photo`와 `photoAlt`에 연결합니다. 사진 아래에는 관계·이름을 표시하며, 가족별 영역을 세로로 배치합니다. 가족사진도 본문과 함께 암호화됩니다. 예시 모드에서는 실제 사진 대신 자리 표시자를 사용하며, 실제 배포 빌드에는 두 가족의 사진과 사진 설명이 필요합니다.
 
 사용자가 정한 초대장 전용 **숫자 6자리 비밀번호**를 `.private/password.txt`에 저장한 뒤 파일 권한을 제한합니다. 터미널 명령 인수나 저장소의 설정 파일에 비밀번호를 적지 마세요.
 

@@ -33,9 +33,14 @@ h3 { font-size: 1.125rem; line-height: 1.8; margin-bottom: .7rem; font-weight: 6
 dt { color: var(--muted); flex: 0 1 5rem; }
 dd { flex: 1 1 13rem; min-width: 0; }
 .venue-name { font-weight: 650; }
-.families { display: flex; flex-wrap: wrap; gap: 2rem; }
-.family { flex: 1 1 14rem; min-width: 0; }
+.families { display: grid; gap: 2.8rem; }
+.family { min-width: 0; }
 .family h3 { color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: .9rem; margin-bottom: .8rem; }
+.family-photo { margin-bottom: 1.2rem; border-radius: .3rem; background: #e8ebdf; overflow: hidden; }
+.family-photo img { display: block; width: 100%; height: auto; }
+.family-photo-placeholder { display: grid; place-content: center; gap: .7rem; min-height: 12rem; padding: 2rem 1rem; text-align: center; color: var(--accent); }
+.family-photo-placeholder > span { font-size: 2rem; }
+.family-photo-placeholder p { font-size: 1rem; }
 .family dl > div { display: flex; flex-wrap: wrap; gap: .2rem 1rem; padding: .45rem 0; }
 .family dt { flex-basis: 4rem; }
 .family dd { flex-basis: 5rem; }

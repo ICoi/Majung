@@ -19,6 +19,7 @@ export function validateContent(data, demo = false) {
   if (!Array.isArray(data.families) || data.families.length !== 2) throw new Error('양가 가족 정보를 입력해 주세요.');
   for (const family of data.families) {
     if (!family.title || !Array.isArray(family.members) || !family.members.length || family.members.some((m) => !m.relation || !m.name)) throw new Error('가족의 관계와 이름을 채워 주세요.');
+    if (!demo && (!family.photo || typeof family.photoAlt !== 'string' || !family.photoAlt.trim())) throw new Error('양가별 가족사진과 사진 설명을 입력해 주세요.');
   }
   const date = new Date(`${data.date}T00:00:00+09:00`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date) || Number.isNaN(date.valueOf()) || new Intl.DateTimeFormat('sv-SE', {timeZone:'Asia/Seoul'}).format(date) !== data.date) throw new Error('날짜는 유효한 YYYY-MM-DD 형식이어야 합니다.');
@@ -59,7 +60,12 @@ export async function renderInvitation(root, data, demo) {
   const timeLabel = new Intl.DateTimeFormat('ko-KR', {timeZone:'Asia/Seoul',hour:'numeric',minute:'2-digit',hour12:true}).format(date);
   const photo = demo ? placeholder : `<img src="${await inlineAsset(path.join(root,'.private'), data.photo, 'photo')}" alt="${escapeHtml(data.photoAlt)}" decoding="async">`;
   const mapData = demo ? `data:image/svg+xml;base64,${Buffer.from(await readFile(path.join(src,'sample-map.svg'))).toString('base64')}` : await inlineAsset(path.join(root,'.private'), data.map, 'map');
-  const families = data.families.map((family) => `<div class="family"><h3>${escapeHtml(family.title)}</h3><dl>${family.members.map((member) => `<div><dt>${escapeHtml(member.relation)}</dt><dd>${escapeHtml(member.name)}</dd></div>`).join('')}</dl></div>`).join('');
+  const families = (await Promise.all(data.families.map(async (family) => {
+    const familyPhoto = demo
+      ? `<div class="family-photo-placeholder" role="img" aria-label="${escapeHtml(family.title)} 사진 자리 표시자"><span aria-hidden="true">✳</span><p>가족사진이 들어갈 자리</p></div>`
+      : `<img src="${await inlineAsset(path.join(root,'.private'), family.photo, 'photo')}" alt="${escapeHtml(family.photoAlt)}" loading="lazy" decoding="async">`;
+    return `<div class="family"><h3>${escapeHtml(family.title)}</h3><figure class="family-photo">${familyPhoto}</figure><dl>${family.members.map((member) => `<div><dt>${escapeHtml(member.relation)}</dt><dd>${escapeHtml(member.name)}</dd></div>`).join('')}</dl></div>`;
+  }))).join('');
   const mapLinks = [['naverMapUrl','네이버지도 열기'],['kakaoMapUrl','카카오맵 열기']].filter(([key]) => data[key]).map(([key,label]) => `<a class="button" href="${escapeHtml(data[key])}" target="_blank" rel="noopener noreferrer">${label}<span class="sr-only"> (새 창)</span></a>`).join('');
   return render(template, {
     ...Object.fromEntries(Object.entries(data).filter(([,v])=>typeof v==='string').map(([k,v])=>[k,escapeHtml(v)])),
