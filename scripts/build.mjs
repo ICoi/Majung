@@ -19,7 +19,13 @@ const largeText = process.argv.includes('--large-text');
 try {
   if (largeText && !demo) throw new Error('큰 글씨 검사 화면은 예시 모드에서만 생성합니다.');
   await mkdir(path.join(root,'.private'), {recursive:true,mode:0o700});
-  const data = JSON.parse(await readFile(path.join(root,demo ? 'content.example.json' : '.private/content.json'),'utf8'));
+  let content;
+  try { content=await readFile(path.join(root,'.private/content.json'),'utf8'); }
+  catch (error) {
+    if (!demo || error.code !== 'ENOENT') throw error;
+    content=await readFile(path.join(root,'content.example.json'),'utf8');
+  }
+  const data = JSON.parse(content);
   // Keep the real venue out of tracked examples, and apply it to both build modes.
   try { Object.assign(data, JSON.parse(await readFile(path.join(root,'.private/venue.json'),'utf8'))); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
