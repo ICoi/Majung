@@ -73,9 +73,12 @@ export async function renderInvitation(root, data, demo) {
     mapData=`data:image/svg+xml;base64,${Buffer.from(await readFile(path.join(src,'sample-map.svg'))).toString('base64')}`;
   }
   const families = (await Promise.all(data.families.map(async (family) => {
-    const familyPhoto = demo
-      ? `<div class="family-photo-placeholder" role="img" aria-label="${escapeHtml(family.title)} 사진 자리 표시자"><span aria-hidden="true">✳</span><p>가족사진이 들어갈 자리</p></div>`
-      : `<img src="${await inlineAsset(path.join(root,'.private'), family.photo, 'photo')}" alt="${escapeHtml(family.photoAlt)}" loading="lazy" decoding="async">`;
+    let familyPhoto;
+    try { familyPhoto=`<img src="${await inlineAsset(path.join(root,'.private'), family.photo, 'photo')}" alt="${escapeHtml(family.photoAlt)}" loading="lazy" decoding="async">`; }
+    catch(error) {
+      if(!demo || error.code !== 'ENOENT') throw error;
+      familyPhoto=`<div class="family-photo-placeholder" role="img" aria-label="${escapeHtml(family.title)} 사진 자리 표시자"><span aria-hidden="true">✳</span><p>가족사진이 들어갈 자리</p></div>`;
+    }
     return `<div class="family"><h3>${escapeHtml(family.title)}</h3><figure class="family-photo">${familyPhoto}</figure><dl>${family.members.map((member) => `<div><dt>${escapeHtml(member.relation)}</dt><dd>${escapeHtml(member.name)}</dd></div>`).join('')}</dl></div>`;
   }))).join('');
   const webMapLink = data.naverMapUrl ? `<a href="${escapeHtml(data.naverMapUrl)}" target="_blank" rel="noopener noreferrer">웹 지도 보기<span class="sr-only"> (새 창)</span></a>` : '';
