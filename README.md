@@ -42,7 +42,7 @@ cp content.example.json .private/content.json
 | `venue`, `address`, `room` | 장소명, 도로명 주소, 예약명·층·룸 |
 | `families` | 양가별 제목, 가족사진 파일명 `photo`, 사진 설명 `photoAlt`, 참석자 관계·이름 |
 | `navigationQuery` | 직접 검색할 때 사용할 식당 검색어. 기본 화면에서는 접어서 표시 |
-| `parking` | 식당 앞 주차, 자리가 없으면 발렛 주차 이용 안내. 요금·운영 시간은 확인된 경우에만 입력 |
+| `parking` | 식당 앞·옆의 넉넉한 주차 공간과 공간 부족 시 발렛 서비스 안내. 요금·운영 시간은 확인된 경우에만 입력 |
 | `mapDescription` | 약도 내용을 글로도 설명 |
 | `naverMapUrl`, `kakaoMapUrl` | 해당 장소의 공식 HTTPS 지도 공유 링크 |
 | `navigation` | 목적지 `name`, WGS84 `latitude`(위도)·`longitude`(경도) |
