@@ -1,5 +1,6 @@
 import { readFile, realpath } from 'node:fs/promises';
 import path from 'node:path';
+import { validateNavigation, navigationLinks } from './navigation.mjs';
 
 export const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[character]));
 
@@ -11,6 +12,7 @@ export function render(template, values) {
 }
 
 export function validateContent(data, demo = false) {
+  validateNavigation(data.navigation, !demo);
   const fields = ['invitation', 'date', 'time', 'venue', 'address', 'room', 'driving', 'navigationQuery', 'parkingAddress', 'parking', 'mapDescription', 'photoAlt'];
   for (const key of fields) {
     if (typeof data[key] !== 'string' || !data[key].trim()) throw new Error(`필수 항목을 채워 주세요: ${key}`);
@@ -67,13 +69,18 @@ export async function renderInvitation(root, data, demo) {
     return `<div class="family"><h3>${escapeHtml(family.title)}</h3><figure class="family-photo">${familyPhoto}</figure><dl>${family.members.map((member) => `<div><dt>${escapeHtml(member.relation)}</dt><dd>${escapeHtml(member.name)}</dd></div>`).join('')}</dl></div>`;
   }))).join('');
   const mapLinks = [['naverMapUrl','네이버지도 열기'],['kakaoMapUrl','카카오맵 열기']].filter(([key]) => data[key]).map(([key,label]) => `<a class="button" href="${escapeHtml(data[key])}" target="_blank" rel="noopener noreferrer">${label}<span class="sr-only"> (새 창)</span></a>`).join('');
+  const links=navigationLinks(data.navigation);
+  const navigationButtons=links.map((link)=>link.url
+    ? `<a class="button navigation-app" href="${escapeHtml(link.url)}" data-navigation="${link.id}" data-app-label="${link.label}">${link.label}</a>`
+    : `<button type="button" class="button navigation-app" disabled aria-describedby="navigation-help">${link.label} · 준비 중</button>`).join('');
   return render(template, {
     ...Object.fromEntries(Object.entries(data).filter(([,v])=>typeof v==='string').map(([k,v])=>[k,escapeHtml(v)])),
-    styles, script, photo, families, mapLinks,
+    styles, script, photo, families, mapLinks, navigationButtons,
+    navigationHelp: !links.length ? '장소가 확정되면 내비게이션 연결을 안내해 드립니다.' : !data.navigation.kakaoNaviUrl ? '카카오내비 연결은 준비 중입니다. T맵 또는 네이버지도를 이용해 주세요.' : '휴대폰에서 이용하시는 앱을 선택해 주세요.',
     nameOne: escapeHtml(data.couple[0]), nameTwo: escapeHtml(data.couple[1]),
     datetime: `${data.date}T${data.time}:00+09:00`, dateLabel:escapeHtml(dateLabel), timeLabel:escapeHtml(timeLabel),
     map: `<img src="${mapData}" alt="${demo ? '예시 약도' : '장소와 주차장 입구 약도'}" loading="lazy" decoding="async">`,
     mapCaption: demo ? '예시 약도 · 실제 위치가 아닙니다.' : '장소와 주차장 입구 · 자세한 설명은 아래를 참고해 주세요.',
-    sampleBanner: demo ? '<p class="sample-banner">디자인 확인용 예시입니다.<br>날짜·이름·장소는 실제 정보가 아닙니다.</p>' : ''
+    sampleBanner: demo ? '<p class="sample-banner">디자인 확인용 초대장입니다.<br>일부 정보와 사진은 예시입니다.</p>' : ''
   });
 }

@@ -14,9 +14,10 @@
   "navigationQuery": "다정한 한정식 · 예시 검색어",
   "parkingAddress": "서울시 다정구 만남로 20 식당 앞 · 예시 주소",
   "parking": "식당 앞에 주차하실 수 있습니다.\n자리가 없으면 발렛 주차를 이용해 주세요.",
-  "mapDescription": "예시 약도입니다. 만남로에서 식당 앞으로 진입하면 주차 공간이 있습니다. 식당 앞에 자리가 없으면 발렛 주차를 이용해 주세요. 실제 도로와 진입 위치는 장소 확정 후 안내합니다.",
+  "mapDescription": "아래 약도는 구성을 보여주는 예시이며 실제 도로와 다릅니다. 내비게이션에서 목적지를 확인하고 식당 앞으로 와 주세요. 식당 앞에 자리가 없으면 발렛 주차를 이용해 주세요.",
   "naverMapUrl": "",
   "kakaoMapUrl": "",
+  "navigation": null,
   "photo": "couple.jpg",
   "photoAlt": "함께 웃고 있는 두 사람",
   "map": "map.svg"

@@ -43,11 +43,18 @@ cp content.example.json .private/content.json
 | `parking` | 식당 앞 주차, 자리가 없으면 발렛 주차 이용 안내. 요금·운영 시간은 확인된 경우에만 입력 |
 | `mapDescription` | 약도 내용을 글로도 설명 |
 | `naverMapUrl`, `kakaoMapUrl` | 해당 장소의 공식 HTTPS 지도 공유 링크 |
+| `navigation` | 목적지 `name`, WGS84 `latitude`(위도)·`longitude`(경도), `kakaoNaviUrl`(카카오내비 앱에서 복사한 목적지 공유 링크) |
 | `photo`, `photoAlt`, `map` | `.private` 안의 사진 파일명, 사진 설명, 약도 파일명 |
 
 사진을 `.private/couple.jpg`, 실제 약도를 `.private/map.svg` 등에 보관합니다. 사진은 JPG·PNG·WebP, 약도는 SVG도 지원합니다. 이미지당 최대 3MB이며, 사진은 가로 1200~1600px 정도로 줄이고 위치정보 등 메타데이터를 제거해 주세요. 사진 전체를 비율 그대로 표시하므로 얼굴이 자동 잘리지 않습니다. SVG 약도는 외부 이미지·폰트·스크립트 없이 독립된 파일이어야 합니다. 예시 약도를 실제 위치처럼 사용하지 마세요.
 
 가족 소개에는 양가별 가족사진을 한 장씩 넣습니다. `.private/family-one.jpg`, `.private/family-two.jpg`로 보관하고 각 `families` 항목의 `photo`와 `photoAlt`에 연결합니다. 사진 아래에는 관계·이름을 표시하며, 가족별 영역을 세로로 배치합니다. 가족사진도 본문과 함께 암호화됩니다. 예시 모드에서는 실제 사진 대신 자리 표시자를 사용하며, 실제 배포 빌드에는 두 가족의 사진과 사진 설명이 필요합니다.
+
+확정된 식당 정보는 로컬 전용 `.private/venue.json`에 따로 보관할 수 있습니다. 이 파일이 있으면 `content.example.json`(예시) 또는 `.private/content.json`(실제)을 읽은 뒤 해당 필드를 덮어 적용합니다. `venue`, `address`, `driving`, `navigationQuery`, `parkingAddress`, 지도 링크와 `navigation`을 입력합니다. 이름·일시·사진 등 아직 미정인 항목은 예시로 유지하면서 실제 목적지 연결을 확인할 수 있습니다. 실제 식당명·주소·좌표는 공개 예시나 스킬에 옮겨 적지 마세요.
+
+내비게이션 버튼은 외부 앱을 여는 방식이며 API 키나 내장 지도 SDK를 사용하지 않습니다. 네이버지도는 `nmap://navigation`, T맵은 `tmap://route`에 목적지를 전달합니다. 카카오내비는 **카카오내비 앱 → 목적지 검색 → 공유 → 링크 복사**로 얻은 공식 HTTPS 주소를 `navigation.kakaoNaviUrl`에 넣습니다. 카카오맵 공유 링크와 구분하고, 실제 휴대폰에서 카카오내비로 열리는지 확인하세요. 링크가 없으면 예시에는 준비 중으로 표시하고 실제 배포 빌드는 차단합니다.
+
+데스크톱에서 네이버지도·T맵 버튼을 누르면 휴대폰 이용 안내를 표시합니다. 모바일에서는 앱 연결을 시도하며, 앱이 없거나 인앱 브라우저가 막으면 주소 복사 또는 웹 지도를 이용할 수 있습니다. [네이버지도 규격](https://guide-gov.ncloud-docs.com/docs/naveropenapiv3-maps-url-scheme-url-scheme), [T맵 개발자 지원](https://openapi.sk.com/qnaCommunity/716), [카카오내비 공식 웹 연동 안내](https://developers.kakao.com/docs/ko/kakaonavi/js)를 참고하세요. SDK 기반 카카오내비 연결을 선택하는 경우에는 별도의 앱 키가 필요하지만 현재 구현에는 SDK를 넣지 않습니다.
 
 사용자가 정한 초대장 전용 **숫자 6자리 비밀번호**를 `.private/password.txt`에 저장한 뒤 파일 권한을 제한합니다. 터미널 명령 인수나 저장소의 설정 파일에 비밀번호를 적지 마세요.
 
@@ -98,5 +105,6 @@ npm run demo:large-text
 - 올바른/틀린 비밀번호, 새로고침 후 다시 잠김, 비밀번호 보기 확인
 - 주소 복사 성공 및 사용 불가 시 직접 복사 안내 확인
 - 실제 지도 링크의 목적지·차량 입구와 주차 정책 재확인
+- 실제 iPhone·Android에서 세 앱의 목적지 전달, 앱 미설치 시 안내 확인. 데스크톱의 화면 크기 변경만으로 앱 실행을 검증한 것으로 간주하지 않음
 
 암호화는 [StatiCrypt 3.5.4](https://github.com/robinmoisson/staticrypt)를 고정 버전으로 사용합니다. `npm test`는 암호화 복원, 잘못된 비밀번호, 날짜·URL·자료 검사, HTML 이스케이프와 이미지 내장을 검증합니다.

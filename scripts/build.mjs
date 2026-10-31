@@ -20,6 +20,9 @@ try {
   if (largeText && !demo) throw new Error('큰 글씨 검사 화면은 예시 모드에서만 생성합니다.');
   await mkdir(path.join(root,'.private'), {recursive:true,mode:0o700});
   const data = JSON.parse(await readFile(path.join(root,demo ? 'content.example.json' : '.private/content.json'),'utf8'));
+  // Keep the real venue out of tracked examples, and apply it to both build modes.
+  try { Object.assign(data, JSON.parse(await readFile(path.join(root,'.private/venue.json'),'utf8'))); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
   let password;
   if (demo) {
     const passwordFile = path.join(root,largeText ? '.private/large-text-password.txt' : '.private/preview-password.txt');

@@ -48,6 +48,11 @@
       <div class="button-group">{{mapLinks}}<button type="button" class="button" data-copy="{{address}}" data-copy-label="식당 주소">식당 주소 복사</button></div>
       <div class="guide"><h3><span class="guide-number" aria-hidden="true">01</span>차량으로 오실 때</h3><p>{{driving}}</p></div>
       <div class="navigation-box">
+        <h3>내비게이션으로 오기</h3>
+        <p id="navigation-help" class="muted">{{navigationHelp}}</p>
+        <div class="button-group navigation-buttons">{{navigationButtons}}</div>
+        <p class="navigation-status" role="status" aria-live="polite"></p>
+        <p class="navigation-install" hidden>앱이 열리지 않으면 설치 여부를 확인하거나 주소를 복사해 이용해 주세요. <a href="{{naverMapUrl}}" target="_blank" rel="noopener noreferrer">웹 지도 열기</a></p>
         <p class="eyebrow">네비게이션 검색어</p>
         <p class="search-query">{{navigationQuery}}</p>
         <p class="muted">식당 앞 주차 공간으로 오시면 됩니다.</p>

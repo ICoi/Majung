@@ -5,9 +5,11 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import path from 'node:path';
+import vm from 'node:vm';
 import { escapeHtml, validateContent, renderInvitation, inlineAsset } from '../scripts/render.mjs';
 import { assertSearchExcluded, checkPublic } from '../scripts/check-public.mjs';
 import { validatePassword } from '../scripts/password.mjs';
+import { navigationLinks, validateNavigation } from '../scripts/navigation.mjs';
 
 const require = createRequire(import.meta.url);
 const engine = require('staticrypt/lib/cryptoEngine.js');
@@ -88,13 +90,14 @@ test('실제 제작 경로에서 사진과 약도를 내장하고 지도 링크�
     await writeFile(path.join(fixture,'.private/map.svg'),'<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="green"/></svg>');
     const data = JSON.parse(JSON.stringify(sample).replace(/예시/g,'검증용').replace(/확인 후/g,'확인하여'));
     Object.assign(data,{photo:'couple.png',naverMapUrl:'https://naver.me/test',kakaoMapUrl:'https://map.kakao.com/'});
+    data.navigation={name:'검증용 식당 & 가족',latitude:37.5,longitude:126.9,kakaoNaviUrl:'https://kakaonavi.kakao.com/test'};
     data.families.forEach((family)=>{ family.photo='couple.png'; });
     const html=await renderInvitation(fixture,data,false);
     assert.match(html,/data:image\/png;base64,/);
     assert.match(html,/data:image\/svg\+xml;base64,/);
     assert.match(html,/href="https:\/\/naver.me\/test"/);
     assert.match(html,/카카오맵 열기/);
-    assert.ok(!html.includes('sample-banner">'));
+    assert.ok(!html.includes('<p class="sample-banner">'));
     assert.equal((html.match(/class="family-photo"/g)||[]).length,2);
     assert.equal((html.match(/data:image\/png;base64,/g)||[]).length,3);
     const missingPhoto=structuredClone(data);
@@ -102,6 +105,55 @@ test('실제 제작 경로에서 사진과 약도를 내장하고 지도 링크�
     assert.throws(()=>validateContent(missingPhoto,false),/가족사진/);
     await assert.rejects(()=>renderInvitation(fixture,{...data,families:data.families.map((family)=>({...family,photo:'https://example.com/family.jpg'}))},false));
   } finally { await rm(fixture,{recursive:true}); }
+});
+
+test('내비게이션은 세 앱에 동일한 목적지와 정확한 위도·경도를 전달',()=>{
+  const destination={name:'검증 식당 & 모임',latitude:37.5,longitude:126.9,kakaoNaviUrl:'https://kakaonavi.kakao.com/test'};
+  validateNavigation(destination,true);
+  const links=navigationLinks(destination);
+  assert.equal(links.length,3);
+  const tmap=new URL(links.find(link=>link.id==='tmap').url);
+  assert.equal(tmap.protocol,'tmap:');
+  assert.equal(tmap.searchParams.get('rGoName'),destination.name);
+  assert.equal(tmap.searchParams.get('rGoX'),'126.9');
+  assert.equal(tmap.searchParams.get('rGoY'),'37.5');
+  const naver=new URL(links.find(link=>link.id==='naver').url);
+  assert.equal(naver.protocol,'nmap:');
+  assert.equal(naver.hostname,'navigation');
+  assert.equal(naver.searchParams.get('dlat'),'37.5');
+  assert.equal(naver.searchParams.get('dlng'),'126.9');
+  assert.equal(naver.searchParams.get('dname'),destination.name);
+  assert.equal(links.find(link=>link.id==='kakao').url,destination.kakaoNaviUrl);
+  assert.throws(()=>validateNavigation({...destination,latitude:126.9,longitude:37.5}));
+  assert.throws(()=>validateNavigation({...destination,kakaoNaviUrl:'javascript:alert(1)'}));
+  assert.throws(()=>validateNavigation({...destination,kakaoNaviUrl:'https://kakaonavi.kakao.com.evil.test/'}));
+  assert.throws(()=>validateNavigation({...destination,kakaoNaviUrl:''},true));
+  assert.equal(navigationLinks({...destination,kakaoNaviUrl:''})[0].url,'');
+});
+
+test('모바일은 앱 링크를 실행하고 데스크톱은 앱 실행 대신 이용 안내를 표시',async()=>{
+  const script=await readFile(path.join(root,'src/invitation.js'),'utf8');
+  for (const [userAgent,platform,maxTouchPoints,mobile] of [
+    ['Desktop','MacIntel',0,false], ['Android','Linux',5,true], ['iPhone','iPhone',5,true], ['Macintosh','MacIntel',5,true]
+  ]) {
+    const links=navigationLinks({name:'검증 식당',latitude:37.5,longitude:126.9,kakaoNaviUrl:''}).filter(link=>link.url).map(link=>({
+      href:link.url,dataset:{navigation:link.id,appLabel:link.label},addEventListener(_,handler){this.click=handler;}
+    }));
+    const status={textContent:''},fallback={hidden:true};
+    const document={
+      querySelectorAll(selector){return selector==='[data-navigation]' ? links : [];},
+      querySelector(selector){return selector==='.navigation-status' ? status : selector==='.navigation-install' ? fallback : {focus(){}};}
+    };
+    vm.runInNewContext(script,{document,navigator:{userAgent,platform,maxTouchPoints},window:{location:{origin:'https://example.test'}},URL});
+    for(const link of links){
+      let prevented=false;
+      link.click({preventDefault(){prevented=true;}});
+      assert.equal(prevented,!mobile);
+      assert.equal(fallback.hidden,false);
+      assert.ok(status.textContent.includes(link.dataset.appLabel));
+    }
+    assert.equal(new URL(links.find(link=>link.dataset.navigation==='naver').href).searchParams.get('appname'),'https://example.test');
+  }
 });
 
 test('실제 생성한 암호화 파일을 복원하고 공개 HTML과 비밀번호를 분리',async()=>{
