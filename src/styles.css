@@ -46,6 +46,8 @@ dd { flex: 1 1 13rem; min-width: 0; }
 .family dd { flex-basis: 5rem; }
 .map { border: 1px solid var(--line); background: #f6eddf; border-radius: .5rem; overflow: hidden; }
 .map img { width: 100%; height: auto; display: block; }
+.map-image-button { display: block; width: 100%; margin: 0; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+.map-image-button:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
 figcaption { color: var(--muted); font-size: .9rem; padding: .65rem 1rem; }
 .map-description { margin-top: 1rem; font-size: 1rem; color: var(--muted); }
 .button-group { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.5rem; }
@@ -89,6 +91,11 @@ figcaption { color: var(--muted); font-size: .9rem; padding: .65rem 1rem; }
 .map-dialog-heading h2 { margin: 0; }
 .map-dialog-scroll { margin-top: 1rem; overflow: auto; }
 .map-dialog-scroll img { display: block; width: max(100%, 52rem); max-width: none; height: auto; }
+.scroll-hint { position: fixed; z-index: 10; bottom: calc(1.1rem + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 2rem); display: flex; align-items: center; gap: min(.8rem, 2vw); padding: min(1rem, 3vw) min(1.3rem, 4vw); border: 1px solid rgb(129 88 63 / 30%); border-radius: 1rem; background: rgb(255 250 242 / 84%); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 .4rem 1.6rem rgb(63 44 36 / 16%); color: var(--ink); pointer-events: none; }
+.scroll-hint[hidden] { display: none; }
+.scroll-hint p { min-width: 0; font-size: 1rem; line-height: 1.6; }
+.scroll-hint strong { font-weight: 650; }
+.scroll-hint-arrow { flex: 0 0 auto; font-size: 1.7rem; color: var(--accent); }
 .copy-status { margin-top: 1rem; color: #6b4933; }
 .copy-status:empty { margin: 0; }
 footer { padding: 4.5rem 1.8rem 4rem; text-align: center; }

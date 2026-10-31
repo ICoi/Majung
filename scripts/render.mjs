@@ -18,6 +18,7 @@ export function validateContent(data, demo = false) {
     if (typeof data[key] !== 'string' || !data[key].trim()) throw new Error(`필수 항목을 채워 주세요: ${key}`);
   }
   if (!Array.isArray(data.couple) || data.couple.length !== 2 || data.couple.some((name) => typeof name !== 'string' || !name.trim())) throw new Error('두 사람의 이름을 입력해 주세요.');
+  if (data.displayNames !== undefined && (!Array.isArray(data.displayNames) || data.displayNames.length !== 2 || data.displayNames.some(name=>typeof name !== 'string' || !name.trim()))) throw new Error('표시할 두 사람의 이름을 확인해 주세요.');
   if (!Array.isArray(data.families) || data.families.length !== 2) throw new Error('양가 가족 정보를 입력해 주세요.');
   for (const family of data.families) {
     if (!family.title || !Array.isArray(family.members) || !family.members.length || family.members.some((m) => !m.relation || !m.name)) throw new Error('가족의 관계와 이름을 채워 주세요.');
@@ -86,7 +87,7 @@ export async function renderInvitation(root, data, demo) {
     styles, script, photo, families, webMapLink, navigationButtons,
     parkingMain:escapeHtml(parkingMain),parkingExtra:escapeHtml(parkingRest.join('\n')),
     navigationHelp: !links.length ? '장소가 확정되면 내비게이션 연결을 안내해 드립니다.' : '',
-    nameOne: escapeHtml(data.couple[0]), nameTwo: escapeHtml(data.couple[1]),
+    nameOne: escapeHtml((data.displayNames || data.couple)[0]), nameTwo: escapeHtml((data.displayNames || data.couple)[1]),
     datetime: `${data.date}T${data.time}:00+09:00`, dateLabel:escapeHtml(dateLabel), timeLabel:escapeHtml(timeLabel),
     map: `<img src="${mapData}" alt="${sampleMap ? '예시 약도' : '식당 주변 약도'}" loading="lazy" decoding="async">`,
     mapCaption: sampleMap ? '예시 약도 · 실제 위치가 아닙니다.' : '식당 주변 약도',

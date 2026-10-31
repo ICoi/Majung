@@ -40,6 +40,7 @@ test('실제 배포에 예시·미확정 내용과 잘못된 지도 주소를 �
   assert.throws(()=>validateContent({...sample,kakaoMapUrl:'https://map.kakao.com.evil.test/'},true));
   assert.throws(()=>validateContent({...sample,date:'2027-02-30'},true));
   assert.throws(()=>validateContent({...sample,time:'25:00'},true));
+  assert.throws(()=>validateContent({...sample,displayNames:['하나']},true));
 });
 
 test('내용을 HTML로 실행하지 않고 텍스트로 표시하며, 서울 기준 날짜·시간을 생성',async()=>{
@@ -168,6 +169,49 @@ test('모바일은 앱 링크를 실행하고 데스크톱은 앱 실행 대신 
     }
     assert.equal(new URL(links.find(link=>link.dataset.navigation==='naver').href).searchParams.get('appname'),'https://example.test');
   }
+});
+
+test('스크롤 안내는 첫 실제 스크롤에 사라지고 맨 위로 돌아와도 다시 표시되지 않음',async()=>{
+  const script=await readFile(path.join(root,'src/invitation.js'),'utf8');
+  for(const [initialScroll,innerHeight,shouldShow] of [[0,800,true],[100,800,true],[0,4000,false]]) {
+    const hint={hidden:true},listeners=new Map();
+    const window={scrollY:initialScroll,innerHeight,addEventListener(name,handler){listeners.set(name,handler);},removeEventListener(name){listeners.delete(name);}};
+    const document={documentElement:{scrollHeight:3000},querySelectorAll(){return [];},querySelector(selector){return selector==='[data-scroll-hint]' ? hint : selector==='main' ? {focus(){}} : null;}};
+    vm.runInNewContext(script,{document,window});
+    assert.equal(hint.hidden,!shouldShow);
+    if(shouldShow){
+      listeners.get('scroll')();
+      assert.equal(hint.hidden,false);
+      window.scrollY=10;listeners.get('scroll')();
+      assert.equal(hint.hidden,false);
+      listeners.get('wheel')();
+      window.scrollY=20;listeners.get('scroll')();
+      assert.equal(hint.hidden,true);
+      assert.equal(listeners.has('scroll'),false);
+      window.scrollY=0;
+      assert.equal(hint.hidden,true);
+    }
+  }
+});
+
+test('약도 이미지와 크게 보기 버튼이 동일한 확대 화면을 열고 이미지를 재사용',async()=>{
+  const script=await readFile(path.join(root,'src/invitation.js'),'utf8');
+  const triggers=[{},{}];
+  triggers.forEach(button=>button.addEventListener=(_,handler)=>{button.click=handler;});
+  const sourceImage={src:'data:image/png;base64,example'},zoomImage={src:''};
+  const mapScroll={scrollWidth:800,clientWidth:300,scrollLeft:0};
+  let opened=0;
+  const dialog={showModal(){opened++;}};
+  const document={
+    querySelectorAll(selector){return selector==='[data-map-expand]' ? triggers : [];},
+    querySelector(selector){return selector==='.map img' ? sourceImage : selector==='.map-dialog-scroll' ? mapScroll : selector==='main' ? {focus(){}} : null;},
+    getElementById(id){return id==='map-dialog' ? dialog : zoomImage;}
+  };
+  vm.runInNewContext(script,{document,window:{}});
+  triggers[0].click();triggers[1].click();
+  assert.equal(opened,2);
+  assert.equal(zoomImage.src,sourceImage.src);
+  assert.equal(mapScroll.scrollLeft,250);
 });
 
 test('실제 생성한 암호화 파일을 복원하고 공개 HTML과 비밀번호를 분리',async()=>{

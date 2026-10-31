@@ -30,12 +30,33 @@ document.querySelectorAll('[data-navigation]').forEach((link) => {
     document.querySelector('.navigation-install').hidden=false;
   });
 });
-const mapExpand=document.querySelector('[data-map-expand]');
-if(mapExpand) mapExpand.addEventListener('click',()=>{
+function openMap() {
   const dialog=document.getElementById('map-dialog');
   document.getElementById('map-zoom-image').src=document.querySelector('.map img').src;
   dialog.showModal();
   const mapScroll=document.querySelector('.map-dialog-scroll');
   mapScroll.scrollLeft=Math.max(0,(mapScroll.scrollWidth-mapScroll.clientWidth)/2);
-});
+}
+document.querySelectorAll('[data-map-expand]').forEach(button=>button.addEventListener('click',openMap));
+const scrollHint=document.querySelector('[data-scroll-hint]');
+if(scrollHint && document.documentElement.scrollHeight > window.innerHeight) {
+  let scrollIntent=false;
+  scrollHint.hidden=false;
+  const markIntent=()=>{scrollIntent=true;};
+  const markKeyIntent=(event)=>{if(['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(event.key)) scrollIntent=true;};
+  const dismissOnScroll=()=>{
+    if(!scrollIntent) return;
+    scrollHint.hidden=true;
+    window.removeEventListener('scroll',dismissOnScroll);
+    window.removeEventListener('wheel',markIntent);
+    window.removeEventListener('touchmove',markIntent);
+    window.removeEventListener('pointerdown',markIntent);
+    window.removeEventListener('keydown',markKeyIntent);
+  };
+  window.addEventListener('wheel',markIntent,{passive:true});
+  window.addEventListener('touchmove',markIntent,{passive:true});
+  window.addEventListener('pointerdown',markIntent,{passive:true});
+  window.addEventListener('keydown',markKeyIntent);
+  window.addEventListener('scroll',dismissOnScroll,{passive:true});
+}
 document.querySelector('main').focus({ preventScroll: true });
