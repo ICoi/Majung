@@ -25,11 +25,11 @@
     button { border: 1px solid #81583f; background: #81583f; color: white; margin-top: 1rem; white-space: normal; overflow-wrap: anywhere; cursor: pointer; }
     button:disabled { opacity: .7; cursor: wait; }
     button:focus-visible, input:focus-visible { outline: 3px solid #81583f; outline-offset: 4px; }
-    .toggle { background: transparent; color: #674731; margin-top: .6rem; }
     .note { font-size: .95rem; color: #766153; margin-top: 1.3rem; }
+    .input-hint { margin: .6rem 0 0; font-size: .95rem; color: #766153; }
+    input::placeholder { color: #766153; opacity: 1; }
     #error { color: #923a2a; margin-top: 1rem; }
     #error:empty { margin: 0; }
-    .sample { border: 1px solid #d7c1a6; padding: .8rem; font-size: .95rem; margin-top: 2rem; }
   </style>
 </head>
 <body>
@@ -37,16 +37,15 @@
     <p class="flower" aria-hidden="true">✳</p>
     <p class="eyebrow">소중한 첫 만남</p>
     <h1>반가운 마음으로<br>초대합니다</h1>
-    <p>전달받으신 비밀번호를 입력하시면<br>초대장을 보실 수 있어요.</p>
+    <p>비밀번호는 저희 결혼식 날짜입니다.<br>년·월·일 순서로 6자리를 입력해 주세요.</p>
     <form id="unlock-form">
       <label for="password">초대장 비밀번호</label>
-      <input id="password" name="password" type="password" required autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="error" aria-invalid="false">
-      <button type="button" class="toggle" id="toggle" aria-controls="password" aria-pressed="false">비밀번호 보기</button>
+      <input id="password" name="password" type="password" inputmode="numeric" placeholder="결혼식 날짜 (예: 000000)" required autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="password-format error" aria-invalid="false">
+      <p id="password-format" class="input-hint">형식: 년·월·일, 각 두 자리 (YYMMDD)</p>
       <button type="submit" id="unlock">초대장 열기</button>
       <p id="error" role="alert" aria-live="assertive"></p>
     </form>
     <p class="note">비밀번호를 모르시면 초대장을 보내주신 분께 문의해 주세요.</p>
-    {{sampleNote}}
     <noscript><p>초대장을 열려면 브라우저에서 JavaScript를 허용해 주세요.</p></noscript>
   </main>
   <script>
@@ -59,12 +58,6 @@
     const password = document.getElementById('password');
     const error = document.getElementById('error');
     const submit = document.getElementById('unlock');
-    document.getElementById('toggle').addEventListener('click', (event) => {
-      const show = password.type === 'password';
-      password.type = show ? 'text' : 'password';
-      event.currentTarget.textContent = show ? '비밀번호 숨기기' : '비밀번호 보기';
-      event.currentTarget.setAttribute('aria-pressed', String(show));
-    });
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       error.textContent = '';
@@ -75,7 +68,7 @@
         if (!window.crypto?.subtle) throw new Error('secure-context');
         const result = await staticrypt.handleDecryptionOfPage(password.value, false);
         if (!result.isSuccessful) {
-          error.textContent = '비밀번호가 맞지 않아요. 전달받으신 비밀번호를 다시 확인해 주세요.';
+          error.textContent = '비밀번호가 맞지 않아요. 결혼식 날짜를 년·월·일 순서의 6자리로 다시 확인해 주세요.';
           password.setAttribute('aria-invalid', 'true');
           password.focus();
         }

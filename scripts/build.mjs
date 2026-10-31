@@ -47,7 +47,7 @@ try {
   assertSearchExcluded(plaintext);
   const salt = cryptoEngine.generateRandomSalt();
   const encrypted = await codec.encode(plaintext,password,salt);
-  let template = (await readFile(path.join(root,'src/lock.html'),'utf8')).replace('{{sampleNote}}', demo ? '<p class="sample">디자인 확인용 예시 초대장입니다.</p>' : '');
+  let template = await readFile(path.join(root,'src/lock.html'),'utf8');
   if (largeText) template = template.replace('</style>', 'html { font-size: 200%; }</style>');
   const html = `<!-- invitation-mode:${demo ? 'demo' : 'production'} -->\n` + renderTemplate(template, {
     js_staticrypt:buildStaticryptJS(),
