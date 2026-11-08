@@ -36,6 +36,15 @@ dd { flex: 1 1 13rem; min-width: 0; }
 .couple-profiles { display: grid; gap: 2rem; }
 .couple-profile { min-width: 0; padding: min(1.5rem, 5vw); border: 1px solid var(--line); border-radius: .6rem; }
 .couple-profile h3 { font-size: 1.5rem; margin: .3rem 0; }
+.profile-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+.profile-identity { flex: 1 1 12rem; min-width: 0; }
+.profile-photo { flex: 0 1 5.5rem; max-width: 100%; border-radius: .5rem; overflow: hidden; background: #f3e8d8; }
+.profile-photo img { display: block; width: 100%; height: auto; }
+.profile-photo-placeholder { min-height: 6rem; padding: .6rem; display: grid; place-content: center; text-align: center; color: var(--accent); font-size: 1rem; }
+.profile-photo-placeholder > span:first-child { font-size: 1.5rem; }
+.profile-hobbies { margin: 0; padding-left: 1.3em; }
+.profile-hobbies li + li { margin-top: .3rem; }
+.partner-note .partner-draft { margin: -.2rem 0 .75rem; color: var(--accent); font-size: 1rem; }
 .profile-birthday { color: var(--muted); font-size: 1rem; }
 .profile-details { margin-top: 1.4rem; }
 .profile-details > div { display: grid; gap: .35rem; padding: 1rem 0; border-top: 1px solid var(--line); }

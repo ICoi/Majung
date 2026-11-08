@@ -83,6 +83,21 @@ test('두 사람 소개는 가족 위에 표시하고 미작성된 마음은 숨
   assert.throws(()=>validateContent({...data,coupleProfiles:[profile,{...profile,work:23}]},true));
 });
 
+test('프로필 목록과 마음 키워드를 안전하게 표시하고 요청한 가안만 표시',async()=>{
+  const profile={role:'신랑',name:'이름',birthday:'생일',hometown:'고향',education:'학업',work:'업무',hobbies:['<b>취미</b>','두 번째 취미'],partnerLabel:'상대의 마음',partnerNote:'소개',partnerTags:['<img onerror=alert(1)>']};
+  const data={...sample,coupleProfiles:[profile,{...profile,role:'신부',partnerDraft:true}]};
+  const html=await renderInvitation(root,data,true);
+  assert.ok(html.includes('<li>&lt;b&gt;취미&lt;/b&gt;</li>'));
+  assert.ok(html.includes('#&lt;img onerror=alert(1)&gt;'));
+  assert.ok(!html.includes('<img onerror=alert(1)>'));
+  assert.equal((html.match(/class="partner-draft"/g)||[]).length,1);
+  assert.equal((html.match(/class="profile-photo-placeholder"/g)||[]).length,2);
+  for (const extra of [{hobbies:[]},{hobbies:[42]},{partnerTags:[{}]},{partnerDraft:'true'},{photo:'avatar.jpg'}]) {
+    assert.throws(()=>validateContent({...sample,coupleProfiles:[{...profile,...extra},profile]},true));
+  }
+  await assert.rejects(()=>renderInvitation(root,{...sample,coupleProfiles:[{...profile,photo:'../outside.jpg',photoAlt:'사진'},profile]},true));
+});
+
 test('이미지는 로컬에 있는 파일만 내장하고, SVG 외부 참조를 차단',async()=>{
   const directory=await mkdtemp(path.join(os.tmpdir(),'majung-test-'));
   try {

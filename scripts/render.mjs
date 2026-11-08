@@ -22,9 +22,13 @@ export function validateContent(data, demo = false) {
   if (data.coupleProfiles !== undefined) {
     if (!Array.isArray(data.coupleProfiles) || data.coupleProfiles.length !== 2) throw new Error('두 사람의 소개를 확인해 주세요.');
     for (const profile of data.coupleProfiles) {
-      for (const key of ['role', 'name', 'birthday', 'hometown', 'education', 'work', 'hobbies']) {
+      for (const key of ['role', 'name', 'birthday', 'hometown', 'education', 'work']) {
         if (typeof profile[key] !== 'string' || !profile[key].trim()) throw new Error('두 사람의 소개 항목을 채워 주세요.');
       }
+      if (!(typeof profile.hobbies === 'string' && profile.hobbies.trim()) && !(Array.isArray(profile.hobbies) && profile.hobbies.length && profile.hobbies.every(item => typeof item === 'string' && item.trim()))) throw new Error('좋아하는 것을 문장 또는 목록으로 입력해 주세요.');
+      if (profile.partnerTags !== undefined && (!Array.isArray(profile.partnerTags) || profile.partnerTags.some(tag => typeof tag !== 'string' || !tag.trim()))) throw new Error('마음 소개 키워드를 확인해 주세요.');
+      if (profile.partnerDraft !== undefined && typeof profile.partnerDraft !== 'boolean') throw new Error('마음 소개의 가안 표시를 확인해 주세요.');
+      if (profile.photo !== undefined && (typeof profile.photo !== 'string' || !profile.photo || typeof profile.photoAlt !== 'string' || !profile.photoAlt.trim())) throw new Error('개인 사진과 사진 설명을 확인해 주세요.');
       for (const key of ['partnerLabel', 'partnerNote']) {
         if (profile[key] !== undefined && typeof profile[key] !== 'string') throw new Error('서로에게 전하는 마음은 문장으로 입력해 주세요.');
       }
@@ -100,10 +104,14 @@ export async function renderInvitation(root, data, demo) {
     }
     return `<div class="family"><h3>${escapeHtml(family.title)}</h3><figure class="family-photo">${familyPhoto}${family.photoCaption ? `<figcaption>${escapeHtml(family.photoCaption)}</figcaption>` : ''}</figure><dl>${family.members.map((member) => `<div class="family-member"><dt>${escapeHtml(member.relation)}</dt><dd><span class="member-name">${escapeHtml(member.name)}</span>${member.tagline ? `<p class="member-tagline">${escapeHtml(member.tagline)}</p>` : ''}${member.description ? `<p class="member-description">${escapeHtml(member.description)}</p>` : ''}${member.tags?.length ? `<ul class="member-tags" aria-label="관심사와 성격">${member.tags.map(tag => `<li>#${escapeHtml(tag)}</li>`).join('')}</ul>` : ''}</dd></div>`).join('')}</dl></div>`;
   }))).join('');
-  const profileCards = (data.coupleProfiles || []).map(profile => {
+  const profileCards = (await Promise.all((data.coupleProfiles || []).map(async profile => {
     const details = [['자란 곳', profile.hometown], ['학업', profile.education], ['하는 일', profile.work], ['좋아하는 것', profile.hobbies]];
-    return `<article class="couple-profile"><p class="eyebrow">${escapeHtml(profile.role)}</p><h3>${escapeHtml(profile.name)}</h3><p class="profile-birthday">생년월일 · ${escapeHtml(profile.birthday)}</p><dl class="profile-details">${details.map(([label, text]) => `<div><dt>${label}</dt><dd>${escapeHtml(text)}</dd></div>`).join('')}</dl>${profile.partnerNote?.trim() ? `<div class="partner-note"><p class="eyebrow">함께하며 느낀 마음</p><h4>${escapeHtml(profile.partnerLabel)}</h4><p>${escapeHtml(profile.partnerNote)}</p></div>` : ''}</article>`;
-  }).join('');
+    const portrait = profile.photo ? `<img src="${await inlineAsset(path.join(root,'.private'),profile.photo,'photo')}" alt="${escapeHtml(profile.photoAlt)}" loading="lazy" decoding="async">` : `<div class="profile-photo-placeholder" role="img" aria-label="${escapeHtml(profile.role)} 사진 자리"><span aria-hidden="true">✳</span><span>사진</span></div>`;
+    const hobbyText = value => Array.isArray(value) ? `<ul class="profile-hobbies">${value.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : escapeHtml(value);
+    const tags = profile.partnerTags?.length ? `<ul class="member-tags" aria-label="서로를 바라본 마음의 키워드">${profile.partnerTags.map(tag => `<li>#${escapeHtml(tag)}</li>`).join('')}</ul>` : '';
+    const note = profile.partnerNote?.trim() ? `<div class="partner-note"><p class="eyebrow">함께하며 느낀 마음</p><h4>${escapeHtml(profile.partnerLabel)}</h4>${profile.partnerDraft ? '<p class="partner-draft">가안 · 남자친구가 수정 예정</p>' : ''}<p>${escapeHtml(profile.partnerNote)}</p>${tags}</div>` : '';
+    return `<article class="couple-profile"><div class="profile-heading"><figure class="profile-photo">${portrait}</figure><div class="profile-identity"><p class="eyebrow">${escapeHtml(profile.role)}</p><h3>${escapeHtml(profile.name)}</h3><p class="profile-birthday">생년월일 · ${escapeHtml(profile.birthday)}</p></div></div><dl class="profile-details">${details.map(([label, text]) => `<div><dt>${label}</dt><dd>${hobbyText(text)}</dd></div>`).join('')}</dl>${note}</article>`;
+  }))).join('');
   const coupleIntroduction = profileCards ? `<section class="section couple-introduction" aria-labelledby="couple-title"><p class="eyebrow">조금 더 가까이</p><h2 id="couple-title">저희를 소개합니다</h2><p class="profile-intro">저희의 일상과 서로를 아끼는 마음을 담았습니다.<br>함께 나눌 이야기의 작은 시작이 되었으면 합니다.</p><div class="couple-profiles">${profileCards}</div></section>` : '';
   const webMapLink = data.naverMapUrl ? `<a href="${escapeHtml(data.naverMapUrl)}" target="_blank" rel="noopener noreferrer">웹 지도 보기<span class="sr-only"> (새 창)</span></a>` : '';
   const links=navigationLinks(data.navigation);
