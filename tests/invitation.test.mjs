@@ -262,6 +262,33 @@ test('스크롤 안내는 첫 실제 스크롤에 사라지고 맨 위로 돌아
   }
 });
 
+test('초대장 진입 시 맨 위로 보정하고 키보드 전환 후에도 사용자 스크롤은 방해하지 않음',async()=>{
+  const script=await readFile(path.join(root,'src/invitation.js'),'utf8');
+  for(const end of ['touchstart','wheel','keydown','expiry']) {
+    const listeners=new Map(),viewportListeners=new Map(),frames=new Map();
+    let calls=0,id=0,expire;
+    const window={
+      scrollY:120,visualViewport:{addEventListener(name,fn){viewportListeners.set(name,fn);},removeEventListener(name){viewportListeners.delete(name);}},
+      addEventListener(name,fn){listeners.set(name,fn);},removeEventListener(name){listeners.delete(name);},
+      scrollTo(options){assert.equal(options.top,0);calls++;this.scrollY=0;},
+      requestAnimationFrame(fn){frames.set(++id,fn);return id;},cancelAnimationFrame(key){frames.delete(key);},
+      setTimeout(fn,delay){assert.equal(delay,1200);expire=fn;return 1;},clearTimeout(){}
+    };
+    const main={focus(options){assert.equal(options.preventScroll,true);}};
+    const document={querySelectorAll(){return [];},querySelector(selector){return selector==='main'?main:null;}};
+    vm.runInNewContext(script,{document,window});
+    assert.equal(window.scrollY,0);
+    const resize=viewportListeners.get('resize');
+    window.scrollY=25;resize();assert.equal(window.scrollY,0);
+    for(let i=0;i<2;i++){const [key,fn]=frames.entries().next().value;frames.delete(key);fn();}
+    assert.equal(calls,4);
+    if(end==='expiry') expire(); else listeners.get(end)();
+    const previous=calls;window.scrollY=180;resize();
+    assert.equal(calls,previous);assert.equal(window.scrollY,180);
+    assert.equal(viewportListeners.size,0);assert.equal(listeners.size,0);
+  }
+});
+
 test('약도 이미지와 크게 보기 버튼이 동일한 확대 화면을 열고 이미지를 재사용',async()=>{
   const script=await readFile(path.join(root,'src/invitation.js'),'utf8');
   const triggers=[{},{}];

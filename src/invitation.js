@@ -60,3 +60,36 @@ if(scrollHint && document.documentElement.scrollHeight > window.innerHeight) {
   window.addEventListener('scroll',dismissOnScroll,{passive:true});
 }
 document.querySelector('main').focus({ preventScroll: true });
+// A focused password field can leave a mobile viewport panned after document.write.
+// Reset only during the opening transition, and yield immediately to user input.
+function startAtTop() {
+  let active=true;
+  let frame;
+  let expiry;
+  const viewport=window.visualViewport;
+  const userEvents=['touchstart','pointerdown','wheel','keydown'];
+  const reset=()=>{
+    if(!active) return;
+    window.scrollTo({top:0,left:0,behavior:'auto'});
+  };
+  const stop=()=>{
+    active=false;
+    window.cancelAnimationFrame(frame);
+    window.clearTimeout(expiry);
+    window.removeEventListener('load',reset);
+    viewport?.removeEventListener('resize',reset);
+    viewport?.removeEventListener('scroll',reset);
+    userEvents.forEach(name=>window.removeEventListener(name,stop));
+  };
+  userEvents.forEach(name=>window.addEventListener(name,stop,{passive:true}));
+  viewport?.addEventListener('resize',reset);
+  viewport?.addEventListener('scroll',reset);
+  window.addEventListener('load',reset,{once:true});
+  reset();
+  frame=window.requestAnimationFrame(()=>{
+    reset();
+    frame=window.requestAnimationFrame(reset);
+  });
+  expiry=window.setTimeout(stop,1200);
+}
+if(typeof window.requestAnimationFrame === 'function') startAtTop();

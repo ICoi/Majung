@@ -52,7 +52,10 @@
     const staticryptInitiator = /*[|js_staticrypt|]*/0;
     const staticryptConfig = /*[|staticrypt_config|]*/0;
     const decryptors = [staticryptConfig, staticryptConfig.review].filter(Boolean).map(config => staticryptInitiator.init(config, {
-      replaceHtmlCallback(html) { document.open(); document.write(html); document.close(); }
+      replaceHtmlCallback(html) {
+        document.activeElement?.blur();
+        document.open(); document.write(html); document.close();
+      }
     }));
     const form = document.getElementById('unlock-form');
     const password = document.getElementById('password');
@@ -67,6 +70,8 @@
       try {
         if (!window.crypto?.subtle) throw new Error('secure-context');
         const enteredPassword = password.value;
+        // Close the mobile keyboard before replacing the document.
+        password.blur();
         let isSuccessful = false;
         for (const decryptor of decryptors) {
           const result = await decryptor.handleDecryptionOfPage(enteredPassword, false);
