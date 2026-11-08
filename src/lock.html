@@ -51,9 +51,9 @@
   <script>
     const staticryptInitiator = /*[|js_staticrypt|]*/0;
     const staticryptConfig = /*[|staticrypt_config|]*/0;
-    const staticrypt = staticryptInitiator.init(staticryptConfig, {
+    const decryptors = [staticryptConfig, staticryptConfig.review].filter(Boolean).map(config => staticryptInitiator.init(config, {
       replaceHtmlCallback(html) { document.open(); document.write(html); document.close(); }
-    });
+    }));
     const form = document.getElementById('unlock-form');
     const password = document.getElementById('password');
     const error = document.getElementById('error');
@@ -66,9 +66,14 @@
       submit.textContent = '초대장을 여는 중…';
       try {
         if (!window.crypto?.subtle) throw new Error('secure-context');
-        const result = await staticrypt.handleDecryptionOfPage(password.value, false);
-        if (!result.isSuccessful) {
-          error.textContent = '비밀번호가 맞지 않아요. 결혼식 날짜를 년·월·일 순서의 6자리로 다시 확인해 주세요.';
+        const enteredPassword = password.value;
+        let isSuccessful = false;
+        for (const decryptor of decryptors) {
+          const result = await decryptor.handleDecryptionOfPage(enteredPassword, false);
+          if (result.isSuccessful) { isSuccessful = true; break; }
+        }
+        if (!isSuccessful) {
+          error.textContent = '비밀번호가 맞지 않아요. 전달받으신 6자리 비밀번호를 다시 확인해 주세요.';
           password.setAttribute('aria-invalid', 'true');
           password.focus();
         }

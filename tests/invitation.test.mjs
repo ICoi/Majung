@@ -165,6 +165,27 @@ test('실제 제작 경로에서 사진과 약도를 내장하고 지도 링크�
   } finally { await rm(fixture,{recursive:true}); }
 });
 
+test('검토용 렌더링에는 가족사진 파일을 읽거나 실제 이미지 데이터를 넣지 않음',async()=>{
+  const fixture=await mkdtemp(path.join(os.tmpdir(),'majung-review-'));
+  try {
+    await cp(path.join(root,'src'),path.join(fixture,'src'),{recursive:true});
+    await mkdir(path.join(fixture,'.private'));
+    const data=structuredClone(sample);
+    data.families.forEach((family,index)=>{family.photo='family-'+index+'.png';});
+    const review=await renderInvitation(fixture,data,true,{hideFamilyPhotos:true});
+    assert.equal((review.match(/review-photo-placeholder"/g)||[]).length,2);
+    assert.ok(!/<figure class="family-photo">\s*<img/.test(review));
+    for (const family of data.families) {
+      assert.ok(review.includes(escapeHtml(family.title)));
+      assert.ok(review.includes(escapeHtml(family.members[0].name)));
+    }
+    // Even if real family files are available, the review renderer excludes their bytes.
+    for (const family of data.families) await writeFile(path.join(fixture,'.private',family.photo),'private-family-image-bytes');
+    const withFiles=await renderInvitation(fixture,data,true,{hideFamilyPhotos:true});
+    assert.ok(!withFiles.includes(Buffer.from('private-family-image-bytes').toString('base64')));
+  } finally { await rm(fixture,{recursive:true}); }
+});
+
 test('내비게이션은 세 앱에 동일한 목적지와 정확한 위도·경도를 전달',()=>{
   const destination={name:'검증 식당 & 모임',latitude:37.5,longitude:126.9};
   validateNavigation(destination,true);
@@ -273,6 +294,28 @@ test('실제 생성한 암호화 파일을 복원하고 공개 HTML과 비밀번
   assert.match(result.decoded,/<main id="invitation"/);
   assert.match(result.decoded,/data:image/);
   assert.doesNotThrow(()=>assertSearchExcluded(result.decoded));
+});
+
+test('실제 생성한 두 버전은 비밀번호가 분리되고 검토용에는 가족사진이 없음',async()=>{
+  const html=await checkPublic(path.join(root,'dist'));
+  const config=JSON.parse(html.match(/const staticryptConfig = (\{[^\n]+\});/)[1]);
+  if (!config.review) return; // Review mode is optional when its local password file is absent.
+  const reviewPassword=process.env.STATICRYPT_REVIEW_PASSWORD || (await readFile(path.join(root,'.private/review-password.txt'),'utf8')).trim();
+  const isDemo=html.startsWith('<!-- invitation-mode:demo -->');
+  const fullPassword=(!isDemo && process.env.STATICRYPT_PASSWORD) || (await readFile(path.join(root,isDemo ? '.private/preview-password.txt' : '.private/password.txt'),'utf8')).trim();
+  assert.notEqual(reviewPassword,fullPassword);
+  assert.notEqual(config.review.staticryptSaltUniqueVariableName,config.staticryptSaltUniqueVariableName);
+  assertPasswordNotExposed(html,reviewPassword);
+  const decode=async(c,password)=>codec.decode(c.staticryptEncryptedMsgUniqueVariableName,await engine.hashPassword(password,c.staticryptSaltUniqueVariableName),c.staticryptSaltUniqueVariableName);
+  const review=await decode(config.review,reviewPassword);
+  const full=await decode(config,fullPassword);
+  assert.equal(review.success,true);assert.equal(full.success,true);
+  assert.equal((review.decoded.match(/review-photo-placeholder"/g)||[]).length,2);
+  assert.ok(!/<figure class="family-photo">\s*<img/.test(review.decoded));
+  assert.equal((full.decoded.match(/<figure class="family-photo"><img/g)||[]).length,2);
+  assert.equal((await decode(config,reviewPassword)).success,false);
+  assert.equal((await decode(config.review,fullPassword)).success,false);
+  assertSearchExcluded(review.decoded);
 });
 
 test('검색 제외는 최초 HTML head에 필요하며, 누락되면 공개 파일 검사가 실패',async()=>{

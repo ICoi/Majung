@@ -20,6 +20,12 @@ export async function checkPublic(directory, production = false) {
   const html = await readFile(path.join(directory,'index.html'),'utf8');
   assertSearchExcluded(html);
   if (!/"staticryptEncryptedMsgUniqueVariableName":"[0-9a-f]+"/.test(html) || !/"isRememberEnabled":false/.test(html)) throw new Error('암호화 결과물을 확인해 주세요.');
+  const configMatch = html.match(/const staticryptConfig = (\{[^\n]+\});/);
+  if (!configMatch) throw new Error('암호화 설정이 없습니다.');
+  const config = JSON.parse(configMatch[1]);
+  for (const version of [config, config.review].filter(Boolean)) {
+    if (!/^[0-9a-f]+$/.test(version.staticryptEncryptedMsgUniqueVariableName || '') || !/^[0-9a-f]+$/.test(version.staticryptSaltUniqueVariableName || '') || version.isRememberEnabled !== false) throw new Error('각 버전의 암호화·저장 설정을 확인해 주세요.');
+  }
   if (production && !html.startsWith('<!-- invitation-mode:production -->')) throw new Error('예시 초대장은 배포하지 않습니다. 실제 자료로 npm run build를 실행해 주세요.');
   if (/data:image|<img\b|\{\{\w+\}\}|\/\*\[\|/.test(html)) throw new Error('공개 결과물에 원본 이미지나 미완성 템플릿이 있습니다.');
   return html;

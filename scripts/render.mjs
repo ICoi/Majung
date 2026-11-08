@@ -78,7 +78,7 @@ export async function inlineAsset(privateDir, filename, kind) {
 
 const placeholder = `<div class="photo-placeholder" role="img" aria-label="두 사람의 사진 자리 표시자"><svg viewBox="0 0 200 200" fill="none" aria-hidden="true"><path d="M30 170V85a45 45 0 0 1 90 0v85M80 170V70a45 45 0 0 1 90 0v100" stroke="currentColor" stroke-width="1.5"/><circle cx="75" cy="95" r="16" stroke="currentColor"/><path d="M47 147c0-36 56-36 56 0" stroke="currentColor"/><circle cx="125" cy="80" r="16" stroke="currentColor"/><path d="M97 132c0-36 56-36 56 0" stroke="currentColor"/></svg><p>두 사람의 사진이 들어갈 자리</p></div>`;
 
-export async function renderInvitation(root, data, demo) {
+export async function renderInvitation(root, data, demo, { hideFamilyPhotos = false } = {}) {
   validateContent(data, demo);
   const src = path.join(root, 'src');
   const [template, styles, script] = await Promise.all(['invitation.html','styles.css','invitation.js'].map((name) => readFile(path.join(src,name),'utf8')));
@@ -97,7 +97,9 @@ export async function renderInvitation(root, data, demo) {
   }
   const families = (await Promise.all(data.families.map(async (family) => {
     let familyPhoto;
-    try { familyPhoto=`<img src="${await inlineAsset(path.join(root,'.private'), family.photo, 'photo')}" alt="${escapeHtml(family.photoAlt)}" loading="lazy" decoding="async">`; }
+    if (hideFamilyPhotos) {
+      familyPhoto='<div class="family-photo-placeholder review-photo-placeholder" role="img" aria-label="가족사진 영역"><span aria-hidden="true">✳</span><p>가족사진</p></div>';
+    } else try { familyPhoto=`<img src="${await inlineAsset(path.join(root,'.private'), family.photo, 'photo')}" alt="${escapeHtml(family.photoAlt)}" loading="lazy" decoding="async">`; }
     catch(error) {
       if(!demo || error.code !== 'ENOENT') throw error;
       familyPhoto=`<div class="family-photo-placeholder" role="img" aria-label="${escapeHtml(family.title)} 사진 자리 표시자"><span aria-hidden="true">✳</span><p>가족사진이 들어갈 자리</p></div>`;

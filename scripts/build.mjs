@@ -42,18 +42,36 @@ try {
     password = process.env.STATICRYPT_PASSWORD || (await readFile(path.join(root,'.private/password.txt'),'utf8')).trim();
   }
   validatePassword(password, demo);
+  let reviewPassword = process.env.STATICRYPT_REVIEW_PASSWORD;
+  if (!reviewPassword) {
+    try { reviewPassword = (await readFile(path.join(root,'.private/review-password.txt'),'utf8')).trim(); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+  }
+  if (reviewPassword !== undefined) {
+    validatePassword(reviewPassword);
+    if (reviewPassword === password) throw new Error('검토용 비밀번호는 기존 비밀번호와 다르게 설정해 주세요.');
+  }
   let plaintext = await renderInvitation(root,data,demo);
   if (largeText) plaintext = plaintext.replace('</style>', 'html { font-size: 200%; }</style>');
   assertSearchExcluded(plaintext);
   const salt = cryptoEngine.generateRandomSalt();
   const encrypted = await codec.encode(plaintext,password,salt);
+  const config = {staticryptEncryptedMsgUniqueVariableName:encrypted,staticryptSaltUniqueVariableName:salt,isRememberEnabled:false,rememberDurationInDays:0};
+  if (reviewPassword !== undefined) {
+    let reviewHtml = await renderInvitation(root,data,demo,{hideFamilyPhotos:true});
+    if (largeText) reviewHtml = reviewHtml.replace('</style>', 'html { font-size: 200%; }</style>');
+    assertSearchExcluded(reviewHtml);
+    const reviewSalt = cryptoEngine.generateRandomSalt();
+    config.review = {staticryptEncryptedMsgUniqueVariableName:await codec.encode(reviewHtml,reviewPassword,reviewSalt),staticryptSaltUniqueVariableName:reviewSalt,isRememberEnabled:false,rememberDurationInDays:0};
+  }
   let template = await readFile(path.join(root,'src/lock.html'),'utf8');
   if (largeText) template = template.replace('</style>', 'html { font-size: 200%; }</style>');
   const html = `<!-- invitation-mode:${demo ? 'demo' : 'production'} -->\n` + renderTemplate(template, {
     js_staticrypt:buildStaticryptJS(),
-    staticrypt_config:{staticryptEncryptedMsgUniqueVariableName:encrypted,staticryptSaltUniqueVariableName:salt,isRememberEnabled:false,rememberDurationInDays:0}
+    staticrypt_config:config
   });
   assertPasswordNotExposed(html,password);
+  if (reviewPassword !== undefined) assertPasswordNotExposed(html,reviewPassword);
   assertSearchExcluded(html);
   if (largeText) {
     await writeFile(path.join(root,'.private/large-text.html'),html,{mode:0o600});
