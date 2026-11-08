@@ -68,6 +68,21 @@ test('선택형 가족 소개와 키워드는 HTML을 실행하지 않고 표시
   assert.throws(()=>validateContent(data,true));
 });
 
+test('두 사람 소개는 가족 위에 표시하고 미작성된 마음은 숨기며 모든 내용을 이스케이프',async()=>{
+  const profile={role:'신랑',name:'예시 이름',birthday:'생일',hometown:'자란 곳',education:'학업',work:'<script>업무</script>',hobbies:'취미',partnerLabel:'빈 마음 제목',partnerNote:''};
+  const data={...sample,coupleProfiles:[profile,{...profile,role:'신부',partnerLabel:'마음 제목',partnerNote:'<b>다정함</b>'}]};
+  const html=await renderInvitation(root,data,true);
+  assert.ok(html.indexOf('id="couple-title"') < html.indexOf('id="family-title"'));
+  assert.ok(html.includes(escapeHtml(profile.work)));
+  assert.ok(html.includes('&lt;b&gt;다정함&lt;/b&gt;'));
+  assert.ok(!html.includes('<script>업무</script>'));
+  assert.ok(!html.includes('빈 마음 제목'));
+  assert.equal((html.match(/class="partner-note"/g)||[]).length,1);
+  assert.ok(!(await renderInvitation(root,sample,true)).includes('id="couple-title"'));
+  assert.throws(()=>validateContent({...sample,coupleProfiles:[profile]},true));
+  assert.throws(()=>validateContent({...data,coupleProfiles:[profile,{...profile,work:23}]},true));
+});
+
 test('이미지는 로컬에 있는 파일만 내장하고, SVG 외부 참조를 차단',async()=>{
   const directory=await mkdtemp(path.join(os.tmpdir(),'majung-test-'));
   try {

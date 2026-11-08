@@ -19,6 +19,18 @@ export function validateContent(data, demo = false) {
   }
   if (!Array.isArray(data.couple) || data.couple.length !== 2 || data.couple.some((name) => typeof name !== 'string' || !name.trim())) throw new Error('두 사람의 이름을 입력해 주세요.');
   if (data.displayNames !== undefined && (!Array.isArray(data.displayNames) || data.displayNames.length !== 2 || data.displayNames.some(name=>typeof name !== 'string' || !name.trim()))) throw new Error('표시할 두 사람의 이름을 확인해 주세요.');
+  if (data.coupleProfiles !== undefined) {
+    if (!Array.isArray(data.coupleProfiles) || data.coupleProfiles.length !== 2) throw new Error('두 사람의 소개를 확인해 주세요.');
+    for (const profile of data.coupleProfiles) {
+      for (const key of ['role', 'name', 'birthday', 'hometown', 'education', 'work', 'hobbies']) {
+        if (typeof profile[key] !== 'string' || !profile[key].trim()) throw new Error('두 사람의 소개 항목을 채워 주세요.');
+      }
+      for (const key of ['partnerLabel', 'partnerNote']) {
+        if (profile[key] !== undefined && typeof profile[key] !== 'string') throw new Error('서로에게 전하는 마음은 문장으로 입력해 주세요.');
+      }
+      if (profile.partnerNote?.trim() && !profile.partnerLabel?.trim()) throw new Error('마음을 전하는 사람의 안내를 채워 주세요.');
+    }
+  }
   if (!Array.isArray(data.families) || data.families.length !== 2) throw new Error('양가 가족 정보를 입력해 주세요.');
   for (const family of data.families) {
     if (!family.title || !Array.isArray(family.members) || !family.members.length || family.members.some((m) => !m.relation || !m.name)) throw new Error('가족의 관계와 이름을 채워 주세요.');
@@ -88,13 +100,18 @@ export async function renderInvitation(root, data, demo) {
     }
     return `<div class="family"><h3>${escapeHtml(family.title)}</h3><figure class="family-photo">${familyPhoto}${family.photoCaption ? `<figcaption>${escapeHtml(family.photoCaption)}</figcaption>` : ''}</figure><dl>${family.members.map((member) => `<div class="family-member"><dt>${escapeHtml(member.relation)}</dt><dd><span class="member-name">${escapeHtml(member.name)}</span>${member.tagline ? `<p class="member-tagline">${escapeHtml(member.tagline)}</p>` : ''}${member.description ? `<p class="member-description">${escapeHtml(member.description)}</p>` : ''}${member.tags?.length ? `<ul class="member-tags" aria-label="관심사와 성격">${member.tags.map(tag => `<li>#${escapeHtml(tag)}</li>`).join('')}</ul>` : ''}</dd></div>`).join('')}</dl></div>`;
   }))).join('');
+  const profileCards = (data.coupleProfiles || []).map(profile => {
+    const details = [['자란 곳', profile.hometown], ['학업', profile.education], ['하는 일', profile.work], ['좋아하는 것', profile.hobbies]];
+    return `<article class="couple-profile"><p class="eyebrow">${escapeHtml(profile.role)}</p><h3>${escapeHtml(profile.name)}</h3><p class="profile-birthday">생년월일 · ${escapeHtml(profile.birthday)}</p><dl class="profile-details">${details.map(([label, text]) => `<div><dt>${label}</dt><dd>${escapeHtml(text)}</dd></div>`).join('')}</dl>${profile.partnerNote?.trim() ? `<div class="partner-note"><p class="eyebrow">함께하며 느낀 마음</p><h4>${escapeHtml(profile.partnerLabel)}</h4><p>${escapeHtml(profile.partnerNote)}</p></div>` : ''}</article>`;
+  }).join('');
+  const coupleIntroduction = profileCards ? `<section class="section couple-introduction" aria-labelledby="couple-title"><p class="eyebrow">조금 더 가까이</p><h2 id="couple-title">저희를 소개합니다</h2><p class="profile-intro">저희의 일상과 서로를 아끼는 마음을 담았습니다.<br>함께 나눌 이야기의 작은 시작이 되었으면 합니다.</p><div class="couple-profiles">${profileCards}</div></section>` : '';
   const webMapLink = data.naverMapUrl ? `<a href="${escapeHtml(data.naverMapUrl)}" target="_blank" rel="noopener noreferrer">웹 지도 보기<span class="sr-only"> (새 창)</span></a>` : '';
   const links=navigationLinks(data.navigation);
   const navigationButtons=links.map((link)=>`<a class="button navigation-app" href="${escapeHtml(link.url)}" data-navigation="${link.id}" data-app-label="${link.label}"><span>${link.label}</span><span aria-hidden="true">↗</span></a>`).join('');
   const [parkingMain,...parkingRest]=data.parking.split('\n');
   return render(template, {
     ...Object.fromEntries(Object.entries(data).filter(([,v])=>typeof v==='string').map(([k,v])=>[k,escapeHtml(v)])),
-    styles, script, photo, families, webMapLink, navigationButtons,
+    styles, script, photo, families, coupleIntroduction, webMapLink, navigationButtons,
     parkingMain:escapeHtml(parkingMain),parkingExtra:escapeHtml(parkingRest.join('\n')),
     navigationHelp: !links.length ? '장소가 확정되면 내비게이션 연결을 안내해 드립니다.' : '',
     nameOne: escapeHtml((data.displayNames || data.couple)[0]), nameTwo: escapeHtml((data.displayNames || data.couple)[1]),

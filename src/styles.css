@@ -32,6 +32,16 @@ h3 { font-size: 1.125rem; line-height: 1.8; margin-bottom: .7rem; font-weight: 6
 dt { color: var(--muted); flex: 0 1 5rem; }
 dd { flex: 1 1 13rem; min-width: 0; }
 .venue-name { font-weight: 650; }
+.profile-intro { color: var(--muted); margin-top: -1rem; margin-bottom: 2rem; }
+.couple-profiles { display: grid; gap: 2rem; }
+.couple-profile { min-width: 0; padding: min(1.5rem, 5vw); border: 1px solid var(--line); border-radius: .6rem; }
+.couple-profile h3 { font-size: 1.5rem; margin: .3rem 0; }
+.profile-birthday { color: var(--muted); font-size: 1rem; }
+.profile-details { margin-top: 1.4rem; }
+.profile-details > div { display: grid; gap: .35rem; padding: 1rem 0; border-top: 1px solid var(--line); }
+.profile-details dt { color: var(--accent); font-weight: 600; }
+.partner-note { background: #f3e8d8; border-radius: .4rem; padding: min(1.2rem, 4vw); margin-top: 1rem; }
+.partner-note h4 { font: inherit; font-weight: 650; margin: .5rem 0 .75rem; }
 .families { display: grid; gap: 2.8rem; }
 .family { min-width: 0; }
 .family h3 { color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: .9rem; margin-bottom: .8rem; }
